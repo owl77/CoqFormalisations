@@ -7,6 +7,9 @@ Record Cat : Type := mkCat
 ; ass : forall (A: Obj)(B:Obj)(C:Obj)(D:Obj)(f:hom (A,B))(g : hom (B,C))(h: hom (C,D)), comp A C D (comp A B C f g) h =   comp A B D f (comp B C D g h) 
 }.
 
+Record Smallcat ( S : Set) :=  mkSmallcat { cat : Cat; small : (Obj cat) = S}.
+
+Definition SmallCat := sigT Smallcat.
 
 Definition Arrows ( C :Cat) := sigT (hom C).
 
@@ -57,7 +60,7 @@ Qed.
 
 Record Functor ( X: Cat * Cat) :=  mkFunctor { 
 obj : (Obj (fst X)) -> (Obj (snd X));
-arr :  forall ( a : Obj (fst X)) ( b : Obj (fst X)), hom (fst X) (a,b) -> hom (snd X) ( obj a, obj b);
+arr :  forall ( a : Obj (fst X) ) ( b : Obj (fst X) ), hom (fst X) (a,b) -> hom (snd X) ( obj a, obj b);
 f_id : forall (a : Obj (fst X)), arr a a (id (fst X) a) = id (snd X) (obj a);
 f_comp :  forall (a : Obj (fst X)) (b : Obj (fst X)) (c : Obj (fst X))( f: hom (fst X) (a,b)) ( g: hom (fst X) (b,c)), 
 arr a c ((comp (fst X)) a b c f g) = (comp (snd X)) (obj a) (obj b) (obj c) (arr a b f) (arr b c g)  }.
@@ -65,13 +68,46 @@ arr a c ((comp (fst X)) a b c f g) = (comp (snd X)) (obj a) (obj b) (obj c) (arr
 
 Definition Func := sigT Functor.
 
+
+Record NatTrans ( X: Cat * Cat) ( F : Functor X) (G : Functor X) := mkNatTrans{
+eta : forall ( A : Obj (fst X) ), (hom (snd X)) ((obj X F) A,  (obj X G) A );
+nat_com : forall (A : Obj (fst X)) ( B : Obj (fst X)) ( f : (hom (fst X)) (A,B) ),  
+(comp (snd X))  ((obj X F) A) ((obj X F) B) ((obj X G) B )   ((arr X F) A B f) (eta B) 
+= (comp (snd X))  ((obj X F) A) ((obj X G) A) ((obj X G) B) (eta A) ((arr X G) A B f)  }.
+
+
+Record Diagram := mkDiagram { index : SmallCat; C : Cat ; diag : Functor ( cat (projT1 index) (projT2 index), C)}.
+
 Definition Shom (x : Set * Set) := let (a,b):= x in a ->b.
 
-Definition Sid (x : Set) := x -> x.
+Definition Sid (x : Set) :=  fun (a : x) => a.
 
-Definition Scomp (a : Set)(b : Set)(c :Set) (f : a -> b) (g : b -> c) := fun (x: a) => g (f x).
+Definition Scomp (a : Set)(b : Set)(c :Set) (f : Shom(a,b)) (g : Shom(b,c)) := fun (x: a) => g (f x).
 
+Theorem Sid_ax : forall ( a : Set) ( b : Set) ( f : Shom (a,b) ), (Scomp a a b (Sid a) f = f) /\     (Scomp a b b f (Sid b) = f).
+Proof.
+(intros **).
+(unfold Scomp).
+split.
+ (unfold Sid).
+ (simpl).
+ auto.
+ (unfold Sid).
+ auto.
+Qed.
 
+Theorem  Sass : forall (A: Set)(B:Set)(C:Set)(D:Set)(f:Shom (A,B))(g : Shom (B,C))(h: Shom (C,D)), Scomp A C D (Scomp A B C f g) h =   Scomp A B D f 
+(Scomp B C D g h).
+Proof.
+intros.
+(unfold Scomp).
+(pose proof (eq_refl (fun x : A => h (g (f x))))).
+assumption.
+Qed.
+
+Definition SET := mkCat Set Shom Sid Scomp Sid_ax Sass.
+ 
+Definition PShv ( A :Cat) := Functor (A, SET).
 
 
 
