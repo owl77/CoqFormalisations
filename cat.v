@@ -1,6 +1,6 @@
 Record Cat : Type := mkCat 
 { Obj : Type
-; hom: Obj * Obj -> Set
+; hom: Obj * Obj -> Type
 ; id : forall A: Obj, hom (A,A)
 ; comp :  forall (A: Obj) ( B: Obj) (C : Obj) ( f: hom (A, B)) ( g : hom (B,C)), hom (A,C)
 ; id_ax : forall (A: Obj) (B : Obj) (f : hom (A,B)), (comp A A B (id A) f = f) /\ (comp A B B f (id B) = f)
@@ -76,6 +76,37 @@ nat_com : forall (A : Obj (fst X)) ( B : Obj (fst X)) ( f : (hom (fst X)) (A,B) 
 = (comp (snd X))  ((obj X F) A) ((obj X G) A) ((obj X G) B) (eta A) ((arr X G) A B f)  }.
 
 
+Definition NatId ( F : Func) ( A : Obj( fst (projT1 F))) :=  (id (snd (projT1 F) )) ((  (obj (projT1 F) (projT2 F) )     A)).
+
+
+Definition getCat (F : Func) := fst (projT1 F).
+
+Definition getCat2 (F: Func) := snd (projT1 F).
+
+Theorem Natidcom : forall (F : Func) (A : Obj (getCat F ) ) ( B : Obj ( getCat F)) (f : hom (getCat F) (A,B)),
+(comp (getCat2 F))  (obj (projT1 F) (projT2 F) A)  (obj (projT1 F) (projT2 F)  B)  (obj (projT1 F) (projT2 F) B )   ((arr (projT1 F) (projT2 F)) A B f) ((NatId F) B) = 
+(comp (snd (projT1 F) ))  ((obj (projT1 F) (projT2 F)) A) ((obj (projT1 F) (projT2 F)) A) ((obj (projT1 F) (projT2 F)) B) ((NatId F) A) ((arr (projT1 F) (projT2 F)) A B f).
+
+Proof.
+intros.
+unfold NatId.
+pose proof id_ax (getCat2 F).
+unfold getCat.
+unfold getCat2.
+unfold getCat in H.
+unfold getCat2 in H.
+pose proof H (obj (projT1 F) (projT2 F) A).
+pose proof H0  (obj (projT1 F) (projT2 F) B).
+pose proof H1 (arr (projT1 F) (projT2 F) A B f).
+destruct H2.
+rewrite -> H2.
+rewrite -> H3.
+reflexivity.
+Qed.
+
+Definition IdNat ( F: Func) := mkNatTrans (NatId F) (Natidcom F).
+
+
 Record Diagram := mkDiagram { index : SmallCat; C : Cat ; diag : Functor ( cat (projT1 index) (projT2 index), C)}.
 
 Definition Shom (x : Set * Set) := let (a,b):= x in a ->b.
@@ -108,6 +139,10 @@ Qed.
 Definition SET := mkCat Set Shom Sid Scomp Sid_ax Sass.
  
 Definition PShv ( A :Cat) := Functor (A, SET).
+
+Check IdNat.
+
+
 
 
 
