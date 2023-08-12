@@ -104,10 +104,55 @@ rewrite -> H3.
 reflexivity.
 Qed.
 
-Definition IdNat ( F: Func) := mkNatTrans (NatId F) (Natidcom F).
+Definition IdNat ( F: Func) := mkNatTrans (projT1 F) (projT2 F) (projT2 F) (NatId F) (Natidcom F).
 
 
-Record Diagram := mkDiagram { index : SmallCat; C : Cat ; diag : Functor ( cat (projT1 index) (projT2 index), C)}.
+
+Definition NatCompEta (X: Cat * Cat) (F : Functor X) ( G : Functor X) ( H : Functor X) (eta1 : NatTrans X F G)
+(eta2 : NatTrans X G H)  := fun (A : Obj (fst X))  => (comp (snd X)) (obj X F A) (obj X G A) (obj X H A) (((eta X F G) eta1) A) 
+( ((eta X G H) eta2) A).
+
+Theorem natcompeta : forall (X: Cat * Cat) (F : Functor X) ( G : Functor X) ( H : Functor X) (eta1 : NatTrans X F G)
+(eta2 : NatTrans X G H), let eta :=  NatCompEta (X: Cat * Cat) (F : Functor X) ( G : Functor X) ( H : Functor X) (eta1 : NatTrans X F G)
+(eta2 : NatTrans X G H)  in   forall (A : Obj (fst X)) ( B : Obj (fst X)) ( f : (hom (fst X)) (A,B) ),  
+(comp (snd X))  ((obj X F) A) ((obj X F) B) ((obj X H) B )   ((arr X F) A B f) (eta B) 
+= (comp (snd X))  ((obj X F) A) ((obj X H) A) ((obj X H) B) (eta A) ((arr X H) A B f).
+
+
+Proof.
+intros.
+pose proof (nat_com X F G eta1).
+pose proof (nat_com X G H eta2).
+unfold NatCompEta in eta0.
+unfold eta0.
+pose proof ( (ass (snd X)) (obj X F A) (obj X F B) (obj X G B) (obj X H B) (arr X F A B f) (eta X F G eta1 B)(eta X G H eta2 B)).
+rewrite <- H2.
+rewrite -> H0.
+pose proof ( (ass (snd X)) (obj X F A) (obj X G A) (obj X G B) (obj X H B) (eta X F G eta1 A)
+ (arr X G A B f)(eta X G H eta2 B)).
+rewrite -> H3.
+rewrite -> H1.
+pose proof ( (ass (snd X)) (obj X F A) (obj X G A) (obj X H A) (obj X H B)  (eta X F G eta1 A)
+(eta X G H eta2 A) (arr X H A B f) ).
+rewrite <- H4.
+reflexivity.
+
+Qed.
+
+(* Now we can we can define composition of natural transformations. *)
+
+
+Definition NatComp  (X: Cat * Cat) (F : Functor X) ( G : Functor X) ( H : Functor X) (eta1 : NatTrans X F G) (eta2 : NatTrans X G H)
+:= mkNatTrans X F H (NatCompEta X F G H eta1 eta2) (natcompeta X F G H eta1 eta2).
+
+
+(* To do: define the category of functors and natural transformations between two categories. We need to show identity
+and associativity laws for NatComp and IdNat *)
+
+
+
+Record Diagram := mkDiagram { index : SmallCat; Ct : Cat ; diag : Functor ( cat (projT1 index) (projT2 index), Ct)}.
+
 
 Definition Shom (x : Set * Set) := let (a,b):= x in a ->b.
 
@@ -140,7 +185,7 @@ Definition SET := mkCat Set Shom Sid Scomp Sid_ax Sass.
  
 Definition PShv ( A :Cat) := Functor (A, SET).
 
-Check IdNat.
+
 
 
 
