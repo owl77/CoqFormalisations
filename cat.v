@@ -139,7 +139,7 @@ reflexivity.
 
 Qed.
 
-(* Now we can we can define composition of natural transformations. *)
+(* Now we can define composition of natural transformations. *)
 
 
 Definition NatComp  (X: Cat * Cat) (F : Functor X) ( G : Functor X) ( H : Functor X) (eta1 : NatTrans X F G) (eta2 : NatTrans X G H)
