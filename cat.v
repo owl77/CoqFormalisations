@@ -81,16 +81,17 @@ nat_com : forall (A  B : Obj (fst X)) ( f : (hom (fst X)) (A,B) ),
 = (comp (snd X))  ((obj X F) A) ((obj X G) A) ((obj X G) B) (eta A) ((arr X G) A B f)  }.
 
 
-Definition NatId ( F : Func) ( A : Obj( fst (projT1 F))) :=  (id (snd (projT1 F) )) ((  (obj (projT1 F) (projT2 F) )     A)).
+(* Definition NatId ( F : Func) ( A : Obj( fst (projT1 F))) :=  (id (snd (projT1 F) )) ((  (obj (projT1 F) (projT2 F) )     A)). *)
 
-(* alternative version Definition NatId  (X: Cat * Cat) ( F : Functor X) := fun ( A : Obj fst X ) =>  (id (snd X )) ( obj X F  A ). *)
+Definition NatId  (X: Cat * Cat) ( F : Functor X) := fun ( A : Obj (fst X) ) =>  (id (snd X )) ( obj X F  A ).
 
 
-Definition getCat (F : Func) := fst (projT1 F).
 
-Definition getCat2 (F: Func) := snd (projT1 F).
+(*Definition getCat (F : Func) := fst (projT1 F).
 
-Theorem Natidcom : forall (F : Func) (A  B : Obj ( getCat F)) (f : hom (getCat F) (A,B)),
+Definition getCat2 (F: Func) := snd (projT1 F). *)
+
+(*Theorem Natidcom : forall (F : Func) (A  B : Obj ( getCat F)) (f : hom (getCat F) (A,B)),
 (comp (getCat2 F))  (obj (projT1 F) (projT2 F) A)  (obj (projT1 F) (projT2 F)  B)  (obj (projT1 F) (projT2 F) B )   ((arr (projT1 F) (projT2 F)) A B f) ((NatId F) B) = 
 (comp (snd (projT1 F) ))  ((obj (projT1 F) (projT2 F)) A) ((obj (projT1 F) (projT2 F)) A) ((obj (projT1 F) (projT2 F)) B) ((NatId F) A) ((arr (projT1 F) (projT2 F)) A B f).
 
@@ -109,9 +110,31 @@ destruct H2.
 rewrite -> H2.
 rewrite -> H3.
 reflexivity.
+Qed. *)
+
+
+Theorem Natidcom : forall ( X: Cat * Cat) ( F : Functor X) ( A B : Obj (fst X)) (f : hom (fst X)(A ,B)),
+(comp (snd X))  (obj  X  F A)  (obj X F  B)  (obj X F B )   (arr X F A B f) ((NatId X F) B) = 
+(comp (snd X ))  (obj X F A) (obj X F A) (obj X F B) ((NatId X F) A) (arr X F A B f).
+
+Proof.
+intros.
+unfold NatId.
+pose proof id_ax (snd X).
+pose proof H (obj X F A) (obj X F B) (arr X F A B f).
+destruct H0.
+rewrite -> H0.
+rewrite -> H1.
+reflexivity.
+
 Qed.
 
-Definition IdNat  (F: Func) := mkNatTrans (projT1 F) (projT2 F) (projT2 F) (NatId F) (Natidcom F).
+Definition IdNat (X : Cat* Cat) ( F : Functor X) := mkNatTrans X F F (NatId X F) (Natidcom X F).
+
+ 
+
+(* Definition IdNat  (F: Func) := mkNatTrans (projT1 F) (projT2 F) (projT2 F) (NatId F) (Natidcom F). *)
+
 
 
 
@@ -161,18 +184,60 @@ Axiom nateq : forall (X: Cat*Cat) (F G : Functor X) (eta1 eta2 : NatTrans X F G)
 
 (* two natural transformations are equal if their fields eta are equal *)
 
-Axiom ext: forall ( A B : Type) (f g : A -> B), (forall (x :A), f x = g x ) -> f = g.
+Axiom ext: forall (A : Type) ( T : A -> Type ) (f g : forall ( x : A), T x) , (forall (x :A), f x = g x ) -> f = g.
 
 (* we need extensionality to prove equality of eta's *)
 
 
 
-Axiom natidl : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G),
-eta X F G (NatComp X F F G (IdNat ( existT Functor X  F)  ) eta1) = eta X F G eta1.
+Theorem natidl1 : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G) (A : Obj (fst X)),
+(eta X F G (NatComp X F F G (IdNat X F)  eta1))  A = (eta X F G eta1) A. 
 
- 
+Proof.
+intros.
+unfold NatComp.
+unfold IdNat.
+unfold NatCompEta.
+unfold NatId.
+pose proof id_ax (snd X) .
+unfold eta.
+pose proof H (obj X F A) (obj X G A) ((eta X F G  eta1) A).
+destruct H0.
+assumption.
 
-(* Need to prove this. But first rewrite IdNat etc. for F X rather than F to avoid using existT *)
+Qed.
+
+
+Theorem natidl2 : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G),
+(eta X F G (NatComp X F F G (IdNat X F)  eta1))   = (eta X F G eta1). 
+
+Proof.
+intros.
+pose proof natidl1 X F G eta1.
+pose proof ext (Obj (fst X)) (fun (x : Obj (fst X)) =>  (hom (snd X)) ((obj X F) x,  (obj X G) x ))
+(eta X F G (NatComp X F F G (IdNat X F)  eta1)) (eta X F G eta1).
+pose proof H0 H.
+assumption.
+
+Qed.
+
+
+Theorem natidl3 : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G),
+NatComp X F F G (IdNat X F)  eta1   =  eta1.
+
+
+Proof.
+intros.
+pose proof natidl2  X F G eta1.
+pose proof nateq X F G (NatComp X F F G (IdNat X F)  eta1  ) (eta1 ).
+pose proof H0 H.
+assumption.
+Qed.
+
+
+(* idem for natidr1, etc.*)
+
+(* missing associativity to define functor category *)
 
 
 
