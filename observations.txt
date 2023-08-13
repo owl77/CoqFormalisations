@@ -8,15 +8,3 @@ Thus it makes no sense to a say a Functor or a Natural Transformation is a X suc
 But we can say that an object T is a category C is a terminal object if such and such....
 
 
-
-Theorem Natidcom : forall (F : Func) (A  B : Obj ( getCat F)) (f : hom (getCat F) (A,B)),
-(comp (getCat2 F))  (obj (projT1 F) (projT2 F) A)  (obj (projT1 F) (projT2 F)  B)  (obj (projT1 F) (projT2 F) B )   ((arr (projT1 F) (projT2 F)) A B f) ((NatId F) B) = 
-(comp (snd (projT1 F) ))  ((obj (projT1 F) (projT2 F)) A) ((obj (projT1 F) (projT2 F)) A) ((obj (projT1 F) (projT2 F)) B) ((NatId F) A) ((arr (projT1 F) (projT2 F)) A B f).
-
-
- Definition NatId  (X: Cat * Cat) ( F : Functor X) := fun ( A : Obj fst X ) =>  (id (snd X )) ( obj X F  A ).
-
-
-Theorem Natidcom : forall ( X: Cat * Cat) ( F : Func X) ( A B : fst X) (f : hom (fst X)(A ,B)),
-(comp (snd X))  (obj  X  F A)  (obj X F  B)  (obj X F B )   (arr X F A B f) ((NatId X F) B) = 
-(comp (snd X ))  (obj X F A) (obj X F A) (obj X F B) ((NatId X F) A) ((arr X F A B f).
