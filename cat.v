@@ -1,8 +1,6 @@
 
-Definition size :=  fun ( t :bool) => match t with 
-   |false => Type
-   |true => Set
-  end.
+(* We do not use curly brackets. Explicitness is what formalisation is all about. *)
+
 
 Record Cat   := mkCat 
 { Obj :  Type
@@ -13,11 +11,7 @@ Record Cat   := mkCat
 ; ass : forall (A B C D:Obj)(f:hom (A,B))(g : hom (B,C))(h: hom (C,D)), comp A C D (comp A B C f g) h =   comp A B D f (comp B C D g h) 
 }.
 
-
-
-
-
-
+(* small categories should be a subtype of Cat *)
 
 Definition Arrows ( C :Cat) := sigT (hom C).
 
@@ -26,6 +20,9 @@ Definition Src ( C :Cat) ( a : Arrows C) := fst (projT1 a).
 Definition Targ ( C :Cat) ( a : Arrows C) := snd (projT1 a).
 
 Definition Terminal (C : Cat) ( A : Obj C) := forall ( B : Obj C), exists ( f :(hom C) (B,A)), forall ( g: (hom C) (B,A)), g = f.
+
+(* Or rather Record Terminal (C : Cat) := mkTerminal { TermObj : Obj C ; 
+termuni :  forall ( B : Obj C), exists ( f :(hom C) (B,A)), forall ( g: (hom C) (B,A)), g = f. *)
 
 Definition Iso (C : Cat) (A B : Obj C) := exists ( f : (hom C) (A,B)), exists ( g : (hom C) (B,A)), ((comp C) A B A f g = (id C) A /\ (comp C) B A B g f = (id C) 
 B).
@@ -85,6 +82,8 @@ nat_com : forall (A  B : Obj (fst X)) ( f : (hom (fst X)) (A,B) ),
 
 
 Definition NatId ( F : Func) ( A : Obj( fst (projT1 F))) :=  (id (snd (projT1 F) )) ((  (obj (projT1 F) (projT2 F) )     A)).
+
+(* alternative version Definition NatId  (X: Cat * Cat) ( F : Functor X) := fun ( A : Obj fst X ) =>  (id (snd X )) ( obj X F  A ). *)
 
 
 Definition getCat (F : Func) := fst (projT1 F).
@@ -177,11 +176,6 @@ eta X F G (NatComp X F F G (IdNat ( existT Functor X  F)  ) eta1) = eta X F G et
 
 
 
-
-
-
-
-
 Definition Shom (x : Set * Set) := let (a,b):= x in a ->b.
 
 Definition Sid (x : Set) :=  fun (a : x) => a.
@@ -212,6 +206,18 @@ Qed.
 Definition SET := mkCat Set Shom Sid Scomp Sid_ax Sass.
  
 Definition PShv ( A :Cat) := Functor (A, SET).
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
