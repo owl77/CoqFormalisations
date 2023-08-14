@@ -208,6 +208,25 @@ assumption.
 Qed.
 
 
+Theorem natidr1: forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G) (A : Obj (fst X)),
+(eta X F G (NatComp X F G G eta1 (IdNat X G) ))  A = (eta X F G eta1) A. 
+
+Proof.
+intros.
+unfold NatComp.
+unfold IdNat.
+unfold NatCompEta.
+unfold NatId.
+pose proof id_ax (snd X) .
+unfold eta.
+pose proof H (obj X F A) (obj X G A) ((eta X F G  eta1) A).
+destruct H0.
+assumption.
+Qed.
+
+
+
+
 Theorem natidl2 : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G),
 (eta X F G (NatComp X F F G (IdNat X F)  eta1))   = (eta X F G eta1). 
 
@@ -220,6 +239,22 @@ pose proof H0 H.
 assumption.
 
 Qed.
+
+
+
+Theorem natidr2 : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G),
+(eta X F G (NatComp X F G G eta1 (IdNat X G) ))  = (eta X F G eta1). 
+
+Proof.
+intros.
+pose proof natidr1 X F G eta1.
+pose proof ext (Obj (fst X)) (fun (x : Obj (fst X)) =>  (hom (snd X)) ((obj X F) x,  (obj X G) x ))
+(eta X F G (NatComp X F G G eta1 (IdNat X G) ))(eta X F G eta1). 
+pose proof H0 H.
+assumption.
+
+Qed.
+
 
 
 Theorem natidl3 : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G),
@@ -235,9 +270,81 @@ assumption.
 Qed.
 
 
-(* idem for natidr1, etc.*)
+Theorem natidr3 : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G),
+(NatComp X F G G eta1 (IdNat X G) )  =  eta1. 
 
-(* missing associativity to define functor category *)
+
+Proof.
+intros.
+pose proof natidr2  X F G eta1.
+pose proof nateq X F G (NatComp X F G G eta1 (IdNat X G) )  (eta1 ).
+pose proof H0 H.
+assumption.
+Qed.
+
+Theorem natid : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G),
+NatComp X F F G (IdNat X F)  eta1   =  eta1 /\ (NatComp X F G G eta1 (IdNat X G) )  =  eta1.
+
+Proof.
+intros.
+pose proof natidl3 X F G eta1.
+pose proof natidr3 X F G eta1.
+pose proof (conj H H0).
+assumption.
+Qed.
+
+
+
+(* associativity to define functor category *)
+
+
+Theorem natass1 : forall ( X : Cat * Cat ) ( F G H I : Functor X) (eta1 : NatTrans X F G)( eta2 : NatTrans X G H)
+(eta3: NatTrans X H I) ( A: Obj (fst X)),
+  (eta X F I (NatComp X F H I ( NatComp X F G H eta1 eta2) eta3)) A =
+  (eta X F I (NatComp X F G I eta1 ( NatComp X G H I eta2 eta3))) A.
+ 
+Proof.
+intros.
+unfold NatComp.
+simpl.
+unfold NatCompEta.
+simpl.
+pose proof (ass (snd X)) (obj X F A) (obj X G A) (obj X H A) (obj X I A) (eta X F G eta1 A) (eta X G H eta2 A)(eta X H I eta3 A).
+assumption.
+Qed.
+
+
+Theorem natass2 : forall ( X : Cat * Cat ) ( F G H I : Functor X) (eta1 : NatTrans X F G)( eta2 : NatTrans X G H)
+(eta3: NatTrans X H I),
+  (eta X F I (NatComp X F H I ( NatComp X F G H eta1 eta2) eta3))  =
+  (eta X F I (NatComp X F G I eta1 ( NatComp X G H I eta2 eta3))).
+
+Proof.
+intros.
+pose proof natass1 X F G H I eta1 eta2 eta3.
+pose proof ext (Obj (fst X)) (fun (x : Obj (fst X)) =>  (hom (snd X)) ((obj X F) x,  (obj X I) x )) 
+ (eta X F I (NatComp X F H I ( NatComp X F G H eta1 eta2) eta3))
+  (eta X F I (NatComp X F G I eta1 ( NatComp X G H I eta2 eta3))).
+pose proof H1 H0.
+assumption.
+Qed.
+
+Theorem natass3 : forall ( X : Cat * Cat ) ( F G H I : Functor X) (eta1 : NatTrans X F G)( eta2 : NatTrans X G H)
+(eta3: NatTrans X H I),   NatComp X F H I ( NatComp X F G H eta1 eta2) eta3 =  NatComp X F G I eta1 ( NatComp X G H I eta2 eta3).
+
+Proof.
+intros.
+pose proof natass2 X F G H I eta1 eta2 eta3.
+pose proof nateq X F I (NatComp X F H I ( NatComp X F G H eta1 eta2) eta3) (NatComp X F G I eta1 ( NatComp X G H I eta2 eta3)).
+pose proof H1 H0.
+assumption.
+Qed.
+
+
+Definition FunctorCat (X : Cat* Cat) := mkCat (Functor X) (fun ( Funs : Functor X * Functor X) => NatTrans X (fst Funs)(snd Funs))
+(IdNat X) (NatComp X) (natid X) (natass3 X).
+
+(* We now have, for two categories A and B the categories of functors A -> B and natural transformations. *)
 
 
 
@@ -270,7 +377,14 @@ Qed.
 
 Definition SET := mkCat Set Shom Sid Scomp Sid_ax Sass.
  
-Definition PShv ( A :Cat) := Functor (A, SET).
+(* Presheaves *)
+
+Definition PShv ( A :Cat) := FunctorCat (A, SET).
+
+(*  To do: constant functor, category of cones, (co)limits, adjunctions via triangular identities, simplicial sets,
+representable functor *)
+
+
 
 
 
