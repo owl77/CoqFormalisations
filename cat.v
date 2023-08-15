@@ -422,16 +422,15 @@ Definition PShv ( A :Cat) := FunctorCat (Op A, SET).
 (* We now have presheaves ! *)
 
 
-Definition yonobj (U: LoSmallCat) (C : Obj U) (X : Obj U):=
+Definition yonobj (U: Cat) (C : Obj U) (X : Obj U):=
 (hom U)(X,C).
 
-Definition yonarr (U : LoSmallCat) (C : Obj U)(A B : Obj U) (f : (hom U)(A,B))
+Definition yonarr (U : Cat) (C : Obj U)(A B : Obj U) (f : (hom U)(A,B))
 := fun ( x : (hom U)(B, C)) => comp U A B C f x.
 
-Lemma yonid_f : forall (U : LoSmallCat) (C : Obj U)
+(* Lemma yonid_f : forall (U : LoSmallCat) (C : Obj U)
 (A : Obj U), (yonarr U C) A A ((id U) A) = (id SET) ((yonobj U C) A).
-
-Proof.
+*)
 
 
 
