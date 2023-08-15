@@ -1,8 +1,8 @@
 
 (* The two rules: 1) No curly brackets (explicitness)
-                  2) Import nothing (minimality, stability and self-containedness)*)
+                  2) Import nothing extra (minimality, stability and self-containedness)*)
 
-Record Cat   := mkCat 
+Record Cat :=mkCat
 { Obj :  Type
 ; hom: Obj * Obj ->  Type
 ; id : forall A: Obj, hom (A,A)
@@ -11,7 +11,14 @@ Record Cat   := mkCat
 ; ass : forall (A B C D:Obj)(f:hom (A,B))(g : hom (B,C))(h: hom (C,D)), comp A C D (comp A B C f g) h =   comp A B D f (comp B C D g h) 
 }.
 
+
+
+
 (* small categories should be a subtype of Cat *)
+
+
+
+
 
 Definition Arrows ( C :Cat) := sigT (hom C).
 
@@ -67,7 +74,7 @@ Record Functor ( X: Cat * Cat) :=  mkFunctor {
 obj : (Obj (fst X)) -> (Obj (snd X));
 arr :  forall ( a : Obj (fst X) ) ( b : Obj (fst X) ), hom (fst X) (a,b) -> hom (snd X) ( obj a, obj b);
 f_id : forall (a : Obj (fst X)), arr a a (id (fst X) a) = id (snd X) (obj a);
-f_comp :  forall (a : Obj (fst X)) (b : Obj (fst X)) (c : Obj (fst X))( f: hom (fst X) (a,b)) ( g: hom (fst X) (b,c)), 
+f_comp :  forall (a b c  : Obj (fst X))( f: hom (fst X) (a,b)) ( g: hom (fst X) (b,c)), 
 arr a c ((comp (fst X)) a b c f g) = (comp (snd X)) (obj a) (obj b) (obj c) (arr a b f) (arr b c g)  }.
 
 
@@ -414,6 +421,21 @@ Definition PShv ( A :Cat) := FunctorCat (Op A, SET).
 
 (* We now have presheaves ! *)
 
+
+Definition yonobj (U: LoSmallCat) (C : Obj U) (X : Obj U):=
+(hom U)(X,C).
+
+Definition yonarr (U : LoSmallCat) (C : Obj U)(A B : Obj U) (f : (hom U)(A,B))
+:= fun ( x : (hom U)(B, C)) => comp U A B C f x.
+
+Lemma yonid_f : forall (U : LoSmallCat) (C : Obj U)
+(A : Obj U), (yonarr U C) A A ((id U) A) = (id SET) ((yonobj U C) A).
+
+Proof.
+
+
+
+
 (*  To do: constant functor, category of cones, (co)limits, adjunctions via triangular identities, simplicial sets,
 representable functor *)
 
@@ -421,6 +443,7 @@ representable functor *)
 Definition dobj ( X: Cat* Cat) (C: Obj (snd X)) (A :  Obj (fst X)) :=  C.
 Definition darr (X : Cat * Cat) (C : Obj (snd X)) ( a : Obj (fst X) ) ( b : Obj (fst X) ) (f:  hom (fst X) (a,b))
    := (id (snd X)) C.
+
 Theorem did_f : forall (X : Cat* Cat) (C : Obj(snd X)) 
 (a : Obj (fst X)), (darr X C) a a (id (fst X) a) = id (snd X) ((dobj X C) a).
 
@@ -452,6 +475,81 @@ Definition Delta (X : Cat * Cat )( C: Obj (snd X)) :=
 
 
 Definition ConeObj (X: Cat * Cat) (C: Obj (snd X)) (D: Functor X)  :=  NatTrans X D (Delta X C).
+
+
+(* Terminal Category *)
+
+Definition TObj := unit.
+
+Definition Thom := fun (  X : unit * unit ) => unit.
+
+Definition Tid := fun ( A: TObj) => tt.
+
+Definition Tcomp := fun (x y z : TObj) ( f :Thom (x ,y)) (g : Thom (y,z)) => tt.
+
+Lemma Tid_ax: forall (A B : TObj) (f : Thom (A,B)), (Tcomp A A B (Tid A) f = f) /\ 
+(Tcomp A B B f (Tid B) = f).
+
+Proof.
+intros.
+unfold Tcomp.
+unfold Thom in f.
+unfold Tid.
+split.
+induction f.
+reflexivity.
+induction f.
+reflexivity.
+Qed.
+
+Lemma Tass : forall (A B C D:TObj)(f:Thom (A,B))(g : Thom (B,C))(h: Thom (C,D)),
+ Tcomp A C D (Tcomp A B C f g) h =   Tcomp A B D f (Tcomp B C D g h).
+
+Proof. 
+intros. 
+unfold Tcomp. 
+unfold Thom in f,g,h.   
+reflexivity. 
+Qed.
+
+Definition One := mkCat TObj Thom Tid Tcomp Tid_ax Tass.
+
+
+(* Functor from One to any Category sending tt to a given object C *)
+
+Definition Tiobj (U : Cat) (C : Obj U) ( x: Obj One) := C.
+
+Definition Tiarr (U : Cat) (C : Obj U) ( a b: Obj One) ( f: (hom One)(a,b)) 
+:= (id U) C.
+
+Lemma Tif_id: forall (U: Cat) (C : Obj U) 
+(a : Obj One), (Tiarr U C) a a ((id One) a) = id U ((Tiobj U C ) a).
+
+Proof.
+intros.
+unfold Tiarr.
+unfold Tiobj.
+reflexivity.
+Qed.
+
+Lemma Tf_comp:  forall (U : Cat) (C: Obj U) (a  b  c : Obj One)
+( f: hom One (a,b)) ( g: hom One (b,c)), 
+(Tiarr U C)  a c ((comp One) a b c f g) = (comp U) 
+(Tiobj U C a) (Tiobj U C b) (Tiobj U C c) (Tiarr U C a b f) (Tiarr U C b c g).
+
+Proof.
+intros.
+unfold Tiarr.
+unfold Tiobj.
+pose proof id_ax U C C (id U C).
+destruct H.
+symmetry.
+apply H.
+Qed.
+
+Definition OneToCat (U: Cat) (C : Obj U) := mkFunctor (One, U) 
+(Tiobj U C) (Tiarr U C) (Tif_id U C) (Tf_comp U C).
+
 
 
 (* Comma Categories *)
