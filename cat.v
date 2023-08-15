@@ -418,6 +418,59 @@ Definition PShv ( A :Cat) := FunctorCat (Op A, SET).
 representable functor *)
 
 
+Definition dobj ( X: Cat* Cat) (C: Obj (snd X)) (A :  Obj (fst X)) :=  C.
+Definition darr (X : Cat * Cat) (C : Obj (snd X)) ( a : Obj (fst X) ) ( b : Obj (fst X) ) (f:  hom (fst X) (a,b))
+   := (id (snd X)) C.
+Theorem did_f : forall (X : Cat* Cat) (C : Obj(snd X)) 
+(a : Obj (fst X)), (darr X C) a a (id (fst X) a) = id (snd X) ((dobj X C) a).
+
+Proof.
+intros.
+unfold darr.
+unfold dobj.
+reflexivity.
+Qed.
+
+Theorem dcomp_f :forall (X: Cat * Cat) (C : Obj (snd X))
+ (a : Obj (fst X)) (b : Obj (fst X)) (c : Obj (fst X))( f: hom (fst X) (a,b)) 
+( g: hom (fst X) (b,c)), 
+(darr X C) a c ((comp (fst X)) a b c f g) = (comp (snd X)) ((dobj X C) a)
+ ((dobj X C) b) ((dobj X C) c) ((darr X C) a b f) ((darr X C) b c g).
+
+Proof.
+intros.
+unfold darr.
+unfold dobj.
+pose proof id_ax (snd X) C C (id (snd X) C).
+destruct H.
+symmetry in H0.
+apply H0.
+Qed.
+
+Definition Delta (X : Cat * Cat )( C: Obj (snd X)) :=
+ mkFunctor X (dobj X C) (darr X C) (did_f X C)(dcomp_f X C).
+
+
+Definition ConeObj (X: Cat * Cat) (C: Obj (snd X)) (D: Functor X)  :=  NatTrans X D (Delta X C).
+
+
+(* Comma Categories *)
+ 
+Definition CommaObj (A B C : Cat)(S : Functor (A,C))(T : Functor (B,C)):=
+sigT (fun (c: (Obj A)*(Obj B)) => (hom C)(obj  (A,C) S  (fst c), (obj (B,C) T (snd c)))).
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
