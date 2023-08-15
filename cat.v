@@ -1,6 +1,6 @@
 
-(* We do not use curly brackets. Explicitness is what formalisation is all about. *)
-
+(* The two rules: 1) No curly brackets (explicitness)
+                  2) Import nothing (minimality, stability and self-containedness)*)
 
 Record Cat   := mkCat 
 { Obj :  Type
@@ -397,7 +397,7 @@ symmetry.
 assumption.
 Qed.
 
-
+(* Ok, so I got lazy and used  curly brackets... *)
 
 
 Definition Op ( U : Cat) := let hom2 := ( fun ( X : (Obj U) * (Obj U) ) => (hom U)(snd X, fst X)) in
@@ -410,10 +410,9 @@ Definition Op ( U : Cat) := let hom2 := ( fun ( X : (Obj U) * (Obj U) ) => (hom 
 
 
 
+Definition PShv ( A :Cat) := FunctorCat (Op A, SET).
 
-
-
-Definition PShv ( A :Cat) := FunctorCat (A, SET).
+(* We now have presheaves ! *)
 
 (*  To do: constant functor, category of cones, (co)limits, adjunctions via triangular identities, simplicial sets,
 representable functor *)
