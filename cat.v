@@ -379,6 +379,40 @@ Definition SET := mkCat Set Shom Sid Scomp Sid_ax Sass.
  
 (* Presheaves *)
 
+Lemma conj_comm : forall {A B : Prop} , (A /\ B) -> (B /\ A).
+
+Proof.
+intros.
+split.
+apply H.
+apply H.
+Qed.
+
+
+Lemma eq_comm : forall {U: Type} {A B : U}, (A = B) -> (B = A).
+
+Proof.
+intros.
+symmetry.
+assumption.
+Qed.
+
+
+
+
+Definition Op ( U : Cat) := let hom2 := ( fun ( X : (Obj U) * (Obj U) ) => (hom U)(snd X, fst X)) in
+ mkCat (Obj U) hom2
+(id U) 
+(fun (A B C : Obj U) ( f : hom2(A,B)) (g : hom2(B,C)) => (comp U) C B A g f )
+(fun (A B : Obj U)(f : hom2(A,B)) => conj_comm   (id_ax U B A f)) 
+(fun (A B C D :Obj U)( f : hom2(A,B))(g : hom2(B,C))(h: hom2(C,D)) 
+=>  eq_comm ((ass U) D C B A h g f )).
+
+
+
+
+
+
 Definition PShv ( A :Cat) := FunctorCat (A, SET).
 
 (*  To do: constant functor, category of cones, (co)limits, adjunctions via triangular identities, simplicial sets,
