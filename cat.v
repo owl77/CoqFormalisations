@@ -16,7 +16,7 @@ Record Cat :=mkCat
 
 (* small categories should be a subtype of Cat *)
 
-
+Definition LocSmall (C : Cat) :=  forall (X : (Obj C)* (Obj C)), ((hom C) X = Set).
 
 
 
@@ -425,6 +425,16 @@ Definition PShv ( A :Cat) := FunctorCat (Op A, SET).
 Definition yonobj (U: Cat) (C : Obj U) (X : Obj U):=
 (hom U)(X,C).
 
+(*Theorem size : forall (U : Cat), LocSmall (U) -> (forall (X : (Obj U) * (Obj U)), (hom U) X) = ((Obj U)*(Obj U) -> Set).
+
+Proof.
+intros.
+unfold LocSmall in H. *)
+
+
+
+
+
 Definition yonarr (U : Cat) (C : Obj U)(A B : Obj U) (f : (hom U)(A,B))
 := fun ( x : (hom U)(B, C)) => comp U A B C f x.
 
@@ -556,17 +566,36 @@ Definition OneToCat (U: Cat) (C : Obj U) := mkFunctor (One, U)
 Definition CommaObj (A B C : Cat)(S : Functor (A,C))(T : Functor (B,C)):=
 sigT (fun (c: (Obj A)*(Obj B)) => (hom C)(obj  (A,C) S  (fst c), (obj (B,C) T (snd c)))).
 
+Definition CommaProj1 (A B C :Cat) (S : Functor (A,C))(T : Functor (B,C))  (X : CommaObj A B C S T) := fst (projT1 X).
+
+Definition CommaProj2 (A B C :Cat) (S : Functor (A,C))(T : Functor (B,C))   (X : CommaObj A B C S T) := snd (projT1 X).
+
+Definition CommMor (A B C :Cat) (S : Functor (A,C))(T : Functor (B,C))  (X : CommaObj A B C S T) := projT2 X.
 
 
 
 
+Definition CommaMor (A B C : Cat)(S : Functor (A,C))(T : Functor (B,C)) (X Y : CommaObj A B C S T):=
+sigT (fun ( pair : ((hom A)(CommaProj1 A B C S T X , (CommaProj1 
+A B C S T  Y) )) *( (hom B)(CommaProj2 A B C S T X, CommaProj2 A B C S T Y) ))
+=> let U := CommaProj1 A B C S T    X in let V := 
+CommaProj2 A B C S T  X in let U' := CommaProj1 A B C S T Y in let V' := CommaProj2 A B C S T Y in
+let h := CommMor A B C S T  X in let h' :=
+ CommMor A B C S T  Y in let f:= fst pair in let g:= snd pair in
+let SU := (obj (A,C) S U) in let SU' := (obj (A,C) S U') in let TV := (obj (B,C) T V) in let TV':= (obj (B,C) T V') in
+let Sf := (arr (A,C) S U U' f) in let Tg := (arr  (B,C) T V V' g) in
+(comp C) SU SU' TV' Sf h' = (comp C) SU TV TV' h Tg).
+ 
+
+Definition preCommaComp (A B C : Cat) (S : Functor (A,C))(T : Functor (B,C))
+( X Y Z : CommaObj A B C S T) ( f : CommaMor A B C S T X Y) ( g : CommaMor A B C S T Y Z) :=
+let i1 := fst (projT1 f) in let i2 := snd (projT1 f) in let j1 := fst (projT1 g) in let j2 := snd (projT1 g) in
+let a1:= CommaProj1 A B C S T X in let a2 := CommaProj2 A B C S T X in let b1:= CommaProj1 A B C S T Y in
+let b2:= CommaProj2 A B C S T Y in let c1:= CommaProj1 A B C S T Z in let c2:= CommaProj2 A B C S T Z in 
+( (comp A) a1 b1 c1 i1 j1,  (comp B) a2 b2  c2  i2 j2).
 
 
-
-
-
-
-
+Theorem commacomm : forall 
 
 
 
