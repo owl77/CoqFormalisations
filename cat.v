@@ -8,7 +8,8 @@ Record Cat :=mkCat
 ; id : forall A: Obj, hom (A,A)
 ; comp :  forall (A B C : Obj) ( f: hom (A, B)) ( g : hom (B,C)), hom (A,C)
 ; id_ax : forall (A B : Obj) (f : hom (A,B)), (comp A A B (id A) f = f) /\ (comp A B B f (id B) = f)
-; ass : forall (A B C D:Obj)(f:hom (A,B))(g : hom (B,C))(h: hom (C,D)), comp A C D (comp A B C f g) h =   comp A B D f (comp B C D g h) 
+; ass : forall (A B C D:Obj)(f:hom (A,B))(g : hom (B,C))(h: hom (C,D)), 
+comp A C D (comp A B C f g) h =   comp A B D f (comp B C D g h) 
 }.
 
 
@@ -586,12 +587,15 @@ let SU := (obj (A,C) S U) in let SU' := (obj (A,C) S U') in let TV := (obj (B,C)
 let Sf := (arr (A,C) S U U' f) in let Tg := (arr  (B,C) T V V' g) in
 (comp C) SU SU' TV' Sf h' = (comp C) SU TV TV' h Tg).
 
-Definition CommaMor {A B C : Cat}(S : Functor (A,C))(T : Functor (B,C)) (X Y : CommaObj A B C S T):=
- sigT (preCommaMor S T X Y).
+Definition CommaMor {A B C : Cat}(S : Functor (A,C))(T : Functor (B,C))
+ (X : (CommaObj A B C S T) * (CommaObj A B C S T) ):=
+ sigT (preCommaMor S T (fst X) (snd X)).
+
+
 
 
 Definition preCommaComp {A B C : Cat} (S : Functor (A,C))(T : Functor (B,C))
-( X Y Z : CommaObj A B C S T) ( f : CommaMor  S T X Y) ( g : CommaMor  S T Y Z) :=
+( X Y Z : CommaObj A B C S T) ( f : CommaMor  S T (X,Y)) ( g : CommaMor  S T (Y,Z)) :=
 let i1 := fst (projT1 f) in let i2 := snd (projT1 f) in let j1 := fst (projT1 g) in let j2 := snd (projT1 g) in
 let a1:= CommaProj1  S T X in let a2 := CommaProj2  S T X in let b1:= CommaProj1  S T Y in
 let b2:= CommaProj2  S T Y in let c1:= CommaProj1  S T Z in let c2:= CommaProj2  S T Z in 
@@ -599,7 +603,7 @@ let b2:= CommaProj2  S T Y in let c1:= CommaProj1  S T Z in let c2:= CommaProj2 
 
 
 Theorem commacomm : forall (A B C : Cat) (S : Functor (A,C))(T : Functor (B,C))
-( X Y Z : CommaObj A B C S T) ( f : CommaMor S T X Y) ( g : CommaMor  S T Y Z),
+( X Y Z : CommaObj A B C S T) ( f : CommaMor S T (X,Y)) ( g : CommaMor  S T (Y,Z)),
 let a1:= CommaProj1  S T X in let a2 := CommaProj2  S T X in 
 let c1:= CommaProj1  S T Z in let c2:= CommaProj2  S T Z in 
 let i:= CommMor  S T X in let j:= CommMor  S T Z in
@@ -673,7 +677,7 @@ reflexivity.
 Qed.
 
 Definition CommaComp (A B C : Cat) (S : Functor(A,C))( T : Functor (B,C))
-(X Y Z : CommaObj A B C S T)(f : CommaMor S T X Y) (g : CommaMor S T Y Z) :=
+(X Y Z : CommaObj A B C S T)(f : CommaMor S T ( X ,Y) ) (g : CommaMor S T (Y,Z)) :=
 existT (preCommaMor S T X Z) (preCommaComp S T X Y Z f g) ( commacomm A B C S T X Y Z f g).
 
 Definition preIdComma (A B C : Cat) (S : Functor(A,C))( T : Functor (B,C)) (X : CommaObj A B C S T)
@@ -722,7 +726,128 @@ Qed.
 Definition IdComma (A B C : Cat) (S : Functor(A,C))( T : Functor (B,C)) (X : CommaObj A B C S T)
 := existT (preCommaMor S T X X    ) (preIdComma A B C S T X) (commaidcomm A B C S T X).
 
-Check CommaComp.
+
+
+(* equality between Comma morphisms *)
+
+Axiom comma_eq: forall (A B C : Cat) (S : Functor (A,C))( T: Functor(B,C))
+(X Y : CommaObj A B C S T) ( f g : CommaMor S T (X,Y)),
+
+( (projT1 f) = (projT1 g)) -> f = g.
+
+
+(* need this *)
+
+Axiom star : forall (A B :Type) (X : A * B),
+(fst X, snd X) = X.
+ 
+
+Theorem commaid_ax : forall (A B C : Cat) (S : Functor (A,C))( T: Functor(B,C))
+(X Y : CommaObj A B C S T) ( f : CommaMor S T (X,Y)),
+(CommaComp A B C S T X X Y (IdComma A B C S T X) f =
+f) /\ (CommaComp A B C S T X Y Y f (IdComma A B C S T Y) =
+f).
+
+Proof.
+
+intros.
+
+split.
+
+cut ( projT1 (CommaComp A B C S T X X Y  (IdComma A B C S T X) f)  = projT1 f ).
+
+
+pose proof comma_eq A B C S T X Y 
+(CommaComp A B C S T X X Y (IdComma A B C S T X) f ) f .
+
+assumption.
+
+unfold CommaComp; unfold IdComma.
+
+unfold preCommaComp.
+
+simpl.
+
+pose proof id_ax A (CommaProj1 S T X) 
+   (CommaProj1 S T Y) (fst (projT1 f)).
+destruct H.
+
+simpl in H.
+rewrite -> H.
+
+
+
+pose proof id_ax B (CommaProj2 S T X) (CommaProj2 S T Y) (snd (projT1 f)).
+destruct H1.
+simpl in H1.
+
+rewrite -> H1.
+
+pose proof star (hom A (CommaProj1 S T X, CommaProj1 S T Y)) 
+     (hom B (CommaProj2 S T X, CommaProj2 S T Y)) (projT1 f).
+assumption.
+
+
+cut ( projT1 (CommaComp A B C S T X Y Y f (IdComma A B C S T Y)) = projT1 f).
+pose proof comma_eq A B C S T X Y 
+(CommaComp A B C S T X Y Y f (IdComma A B C S T Y)) f.
+assumption.
+unfold CommaComp; unfold IdComma.
+unfold preCommaComp.
+simpl.
+pose proof id_ax A (CommaProj1 S T X) 
+   (CommaProj1 S T Y) (fst (projT1 f)).
+destruct H.
+simpl in H0.
+rewrite -> H0.
+pose proof id_ax B (CommaProj2 S T X) (CommaProj2 S T Y) (snd (projT1 f)).
+destruct H1.
+simpl in H2.
+rewrite -> H2.
+
+pose proof star (hom A (CommaProj1 S T X, CommaProj1 S T Y)) 
+     (hom B (CommaProj2 S T X, CommaProj2 S T Y)) (projT1 f).
+assumption.
+
+Qed.
+
+
+
+Theorem commaass : forall (A B C : Cat) (S : Functor (A,C))( T: Functor(B,C))
+(X Y Z W : CommaObj A B C S T) ( f : CommaMor S T (X,Y)) ( g : CommaMor S T (Y,Z))
+( h : CommaMor S T (Z,W)),
+CommaComp A B C S T X Z W (CommaComp A B C S T X Y Z f g) h = 
+CommaComp A B C S T X Y W f (CommaComp A B C S T Y Z W g h).
+
+Proof.
+intros.
+cut (projT1 (CommaComp A B C S T X Z W (CommaComp A B C S T X Y Z f g) h) = 
+projT1 (CommaComp A B C S T X Y W f (CommaComp A B C S T Y Z W g h))).
+pose proof comma_eq A B C S T X W (CommaComp A B C S T X Z W (CommaComp A B C S T X Y Z f g) h) 
+(CommaComp A B C S T X Y W f (CommaComp A B C S T Y Z W g h)).
+assumption.
+unfold CommaComp.
+unfold preCommaComp.
+simpl.
+pose proof (ass A (CommaProj1 S T X) (CommaProj1 S T Y) (CommaProj1 S T Z) (CommaProj1 S T W)
+ (fst (projT1 f)) (fst (projT1 g)) (fst (projT1 h))).
+simpl in H.
+rewrite -> H.
+pose proof (ass B (CommaProj2 S T X) (CommaProj2 S T Y) (CommaProj2 S T Z) (CommaProj2 S T W)
+ (snd (projT1 f)) (snd (projT1 g)) (snd (projT1 h))).
+simpl in H0.
+rewrite -> H0.
+reflexivity.
+Qed.
+
+Definition CommaCat A B C S T := mkCat (CommaObj A B C S T)
+ (CommaMor S T) (IdComma A B C S T) (CommaComp A B C S T) (commaid_ax A B C S T)
+( commaass A B C S T).
+
+
+Check CommaCat.
+
+
 
  
 
