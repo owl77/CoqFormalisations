@@ -13,8 +13,6 @@ comp A C D (comp A B C f g) h =   comp A B D f (comp B C D g h)
 }.
 
 
-
-
 (* small categories should be a subtype of Cat *)
 
 Definition LocSmall (C : Cat) :=  forall (X : (Obj C)* (Obj C)), ((hom C) X = Set).
@@ -94,33 +92,6 @@ nat_com : forall (A  B : Obj (fst X)) ( f : (hom (fst X)) (A,B) ),
 Definition NatId  (X: Cat * Cat) ( F : Functor X) := fun ( A : Obj (fst X) ) =>  (id (snd X )) ( obj X F  A ).
 
 
-
-(*Definition getCat (F : Func) := fst (projT1 F).
-
-Definition getCat2 (F: Func) := snd (projT1 F). *)
-
-(*Theorem Natidcom : forall (F : Func) (A  B : Obj ( getCat F)) (f : hom (getCat F) (A,B)),
-(comp (getCat2 F))  (obj (projT1 F) (projT2 F) A)  (obj (projT1 F) (projT2 F)  B)  (obj (projT1 F) (projT2 F) B )   ((arr (projT1 F) (projT2 F)) A B f) ((NatId F) B) = 
-(comp (snd (projT1 F) ))  ((obj (projT1 F) (projT2 F)) A) ((obj (projT1 F) (projT2 F)) A) ((obj (projT1 F) (projT2 F)) B) ((NatId F) A) ((arr (projT1 F) (projT2 F)) A B f).
-
-Proof.
-intros.
-unfold NatId.
-pose proof id_ax (getCat2 F).
-unfold getCat.
-unfold getCat2.
-unfold getCat in H.
-unfold getCat2 in H.
-pose proof H (obj (projT1 F) (projT2 F) A).
-pose proof H0  (obj (projT1 F) (projT2 F) B).
-pose proof H1 (arr (projT1 F) (projT2 F) A B f).
-destruct H2.
-rewrite -> H2.
-rewrite -> H3.
-reflexivity.
-Qed. *)
-
-
 Theorem Natidcom : forall ( X: Cat * Cat) ( F : Functor X) ( A B : Obj (fst X)) (f : hom (fst X)(A ,B)),
 (comp (snd X))  (obj  X  F A)  (obj X F  B)  (obj X F B )   (arr X F A B f) ((NatId X F) B) = 
 (comp (snd X ))  (obj X F A) (obj X F A) (obj X F B) ((NatId X F) A) (arr X F A B f).
@@ -138,13 +109,6 @@ reflexivity.
 Qed.
 
 Definition IdNat (X : Cat* Cat) ( F : Functor X) := mkNatTrans X F F (NatId X F) (Natidcom X F).
-
- 
-
-(* Definition IdNat  (F: Func) := mkNatTrans (projT1 F) (projT2 F) (projT2 F) (NatId F) (Natidcom F). *)
-
-
-
 
 Definition NatCompEta (X: Cat * Cat) (F G H : Functor X) (eta1 : NatTrans X F G)
 (eta2 : NatTrans X G H)  := fun (A : Obj (fst X))  => (comp (snd X)) (obj X F A) (obj X G A) (obj X H A) (((eta X F G) eta1) A) 
@@ -197,7 +161,6 @@ Axiom ext: forall (A : Type) ( T : A -> Type ) (f g : forall ( x : A), T x) , (f
 (* we need extensionality to prove equality of eta's *)
 
 
-
 Theorem natidl1 : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G) (A : Obj (fst X)),
 (eta X F G (NatComp X F F G (IdNat X F)  eta1))  A = (eta X F G eta1) A. 
 
@@ -233,8 +196,6 @@ assumption.
 Qed.
 
 
-
-
 Theorem natidl2 : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G),
 (eta X F G (NatComp X F F G (IdNat X F)  eta1))   = (eta X F G eta1). 
 
@@ -262,7 +223,6 @@ pose proof H0 H.
 assumption.
 
 Qed.
-
 
 
 Theorem natidl3 : forall (X : Cat * Cat) ( F G : Functor X) (eta1 : NatTrans X F G),
@@ -300,7 +260,6 @@ pose proof natidr3 X F G eta1.
 pose proof (conj H H0).
 assumption.
 Qed.
-
 
 
 (* associativity to define functor category *)
@@ -443,9 +402,6 @@ Definition yonarr (U : Cat) (C : Obj U)(A B : Obj U) (f : (hom U)(A,B))
 (A : Obj U), (yonarr U C) A A ((id U) A) = (id SET) ((yonobj U C) A).
 *)
 
-
-
-
 (*  To do: constant functor, category of cones, (co)limits, adjunctions via triangular identities, simplicial sets,
 representable functor *)
 
@@ -574,7 +530,7 @@ Definition CommaProj2 {A B C :Cat} (S : Functor (A,C))(T : Functor (B,C))   (X :
 Definition CommMor {A B C :Cat} (S : Functor (A,C))(T : Functor (B,C))  (X : CommaObj A B C S T) := projT2 X.
 
 
-
+(* without curly brackets the proofs become unwieldy *)
 
 Definition preCommaMor {A B C : Cat}(S : Functor (A,C))(T : Functor (B,C)) (X Y : CommaObj A B C S T):=
  (fun ( pair : ((hom A)(CommaProj1  S T X , (CommaProj1 
@@ -590,7 +546,6 @@ let Sf := (arr (A,C) S U U' f) in let Tg := (arr  (B,C) T V V' g) in
 Definition CommaMor {A B C : Cat}(S : Functor (A,C))(T : Functor (B,C))
  (X : (CommaObj A B C S T) * (CommaObj A B C S T) ):=
  sigT (preCommaMor S T (fst X) (snd X)).
-
 
 
 
@@ -726,21 +681,27 @@ Qed.
 Definition IdComma (A B C : Cat) (S : Functor(A,C))( T : Functor (B,C)) (X : CommaObj A B C S T)
 := existT (preCommaMor S T X X    ) (preIdComma A B C S T X) (commaidcomm A B C S T X).
 
-
-
 (* equality between Comma morphisms *)
 
 Axiom comma_eq: forall (A B C : Cat) (S : Functor (A,C))( T: Functor(B,C))
 (X Y : CommaObj A B C S T) ( f g : CommaMor S T (X,Y)),
-
 ( (projT1 f) = (projT1 g)) -> f = g.
 
+(* better, use inhabited for the second component *)
 
 (* need this *)
 
-Axiom star : forall (A B :Type) (X : A * B),
+Lemma star : forall (A B :Type) (X : A * B),
 (fst X, snd X) = X.
- 
+
+Proof.
+intros.
+pose proof surjective_pairing X.
+(* https://coq.inria.fr/library/Coq.Init.Datatypes.html *)
+symmetry.
+assumption.
+Qed.
+
 
 Theorem commaid_ax : forall (A B C : Cat) (S : Functor (A,C))( T: Functor(B,C))
 (X Y : CommaObj A B C S T) ( f : CommaMor S T (X,Y)),
@@ -749,45 +710,27 @@ f) /\ (CommaComp A B C S T X Y Y f (IdComma A B C S T Y) =
 f).
 
 Proof.
-
 intros.
-
 split.
-
 cut ( projT1 (CommaComp A B C S T X X Y  (IdComma A B C S T X) f)  = projT1 f ).
-
-
 pose proof comma_eq A B C S T X Y 
 (CommaComp A B C S T X X Y (IdComma A B C S T X) f ) f .
-
 assumption.
-
 unfold CommaComp; unfold IdComma.
-
 unfold preCommaComp.
-
 simpl.
-
 pose proof id_ax A (CommaProj1 S T X) 
    (CommaProj1 S T Y) (fst (projT1 f)).
 destruct H.
-
 simpl in H.
 rewrite -> H.
-
-
-
 pose proof id_ax B (CommaProj2 S T X) (CommaProj2 S T Y) (snd (projT1 f)).
 destruct H1.
 simpl in H1.
-
 rewrite -> H1.
-
 pose proof star (hom A (CommaProj1 S T X, CommaProj1 S T Y)) 
      (hom B (CommaProj2 S T X, CommaProj2 S T Y)) (projT1 f).
 assumption.
-
-
 cut ( projT1 (CommaComp A B C S T X Y Y f (IdComma A B C S T Y)) = projT1 f).
 pose proof comma_eq A B C S T X Y 
 (CommaComp A B C S T X Y Y f (IdComma A B C S T Y)) f.
@@ -804,13 +747,10 @@ pose proof id_ax B (CommaProj2 S T X) (CommaProj2 S T Y) (snd (projT1 f)).
 destruct H1.
 simpl in H2.
 rewrite -> H2.
-
 pose proof star (hom A (CommaProj1 S T X, CommaProj1 S T Y)) 
      (hom B (CommaProj2 S T X, CommaProj2 S T Y)) (projT1 f).
 assumption.
-
 Qed.
-
 
 
 Theorem commaass : forall (A B C : Cat) (S : Functor (A,C))( T: Functor(B,C))
@@ -845,7 +785,13 @@ Definition CommaCat A B C S T := mkCat (CommaObj A B C S T)
 ( commaass A B C S T).
 
 
-Check CommaCat.
+(* finally we can define cones and limits *)
+
+(* Definition Cone (D C : Cat) (F: Functor (D,C)) (O : Obj C) := CommaCat C One (FunctorCat (D,C)) (DeltaFunct (D, C) O) 
+(OneToCat (FunctorCat( D,C)) F). *)
+
+(*We need first to turn Delta  : forall X : Cat * Cat, Obj (snd X) -> Functor X  into a functor itself *)
+
 
 
 
