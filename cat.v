@@ -1,6 +1,12 @@
 
-(* The two rules: 1) No curly brackets (explicitness)
-                  2) Import nothing extra (minimality, stability and self-containedness)*)
+(* The two rules: 1) Avoid curly brackets as much as possible (explicitness)
+                  2) Import nothing extra  beyond standard library
+                    (minimality, stability, clarity, logic-centric and self-containedness)*)
+
+(* 17-08-23 : Defined functor categories, comma categories, diagonal functor, cone categories, (co)limits, 
+the category SET, the terminal category. Adjunctions now are easy to define via unit-counit adjunctions*)
+
+(*To do: Godement product, product categories, finite categories, simplicial sets *)
 
 Record Cat :=mkCat
 { Obj :  Type
@@ -13,11 +19,14 @@ comp A C D (comp A B C f g) h =   comp A B D f (comp B C D g h)
 }.
 
 
-(* small categories should be a subtype of Cat *)
+(* Cat is a 'big' category. We can define enriched categories over Cat. Must solve the problem of
+defining small and locally small categories as subtypes of Cat (needed for Yoneda embedding). 
+How is this done ? It is nice that Coq considers Set a subtype of Type so that we can define our
+category SET *)
+
+
 
 Definition LocSmall (C : Cat) :=  forall (X : (Obj C)* (Obj C)), ((hom C) X = Set).
-
-
 
 Definition Arrows ( C :Cat) := sigT (hom C).
 
@@ -385,22 +394,16 @@ Definition PShv ( A :Cat) := FunctorCat (Op A, SET).
 Definition yonobj (U: Cat) (C : Obj U) (X : Obj U):=
 (hom U)(X,C).
 
-(*Theorem size : forall (U : Cat), LocSmall (U) -> (forall (X : (Obj U) * (Obj U)), (hom U) X) = ((Obj U)*(Obj U) -> Set).
-
-Proof.
-intros.
-unfold LocSmall in H. *)
-
-
-
-
 
 Definition yonarr (U : Cat) (C : Obj U)(A B : Obj U) (f : (hom U)(A,B))
 := fun ( x : (hom U)(B, C)) => comp U A B C f x.
 
-(* Lemma yonid_f : forall (U : LoSmallCat) (C : Obj U)
-(A : Obj U), (yonarr U C) A A ((id U) A) = (id SET) ((yonobj U C) A).
+(* Lemma yonid_f : forall (U : Cat) (C : Obj U)
+(A : Obj U), ( (forall (a b: Obj U) , hom  U(a,b) = Set) ->  (yonarr U C) A A ((id U) A) = (id SET) ((yonobj U C) A)).
+
 *)
+
+
 
 (*  To do: constant functor, category of cones, (co)limits, adjunctions via triangular identities, simplicial sets,
 representable functor *)
@@ -787,15 +790,134 @@ Definition CommaCat A B C S T := mkCat (CommaObj A B C S T)
 
 (* finally we can define cones and limits *)
 
-(* Definition Cone (D C : Cat) (F: Functor (D,C)) (O : Obj C) := CommaCat C One (FunctorCat (D,C)) (DeltaFunct (D, C) O) 
-(OneToCat (FunctorCat( D,C)) F). *)
 
 (*We need first to turn Delta  : forall X : Cat * Cat, Obj (snd X) -> Functor X  into a functor itself *)
+
+
+Definition Delta_arrow_eta ( D C : Cat) (A B : Obj C) (f : hom C (A,B))  (O : Obj D)
+:= f.
+
+Lemma Delta_arrow_comm : forall ( D C : Cat) (A B : Obj C) (f : hom C (A,B))  (O P : Obj D)
+(h : hom D (O,P)),
+let etO:= Delta_arrow_eta D C A B f O in let etP := Delta_arrow_eta D C A B f P in
+let deltAf := arr (D,C) (Delta (D,C) A) O P h in
+let deltBf := arr (D,C) (Delta (D,C) B) O P h in 
+comp C A A B deltAf etO = comp C A B B etP deltBf.
+
+Proof.
+intros.
+unfold deltAf, deltBf.
+unfold Delta.
+simpl.
+unfold darr, etP, etO.
+unfold Delta_arrow_eta.
+simpl.
+pose proof id_ax C A B f.
+destruct H.
+rewrite -> H.
+rewrite -> H0.
+reflexivity.
+Qed.
+
+Definition Delta_arrow (D C : Cat) (A B : Obj C) (f : hom C (A,B)) := mkNatTrans
+(D,C) (Delta (D,C) A) (Delta (D,C) B)  (Delta_arrow_eta D C A B f)
+(Delta_arrow_comm D C A B f).
+
+
+Lemma Delta_id : forall (D C :Cat) ( A : Obj C),
+Delta_arrow D C A A (id C A) = id (FunctorCat (D,C)) ( Delta (D,C) A).
+
+Proof.
+intros.
+cut ((eta (D,C)  ( Delta (D,C) A) ( Delta (D,C) A)  (Delta_arrow D C A A (id C A))) = (eta (D,C)
+( Delta (D,C) A) ( Delta (D,C) A)  (id (FunctorCat (D,C)) ( Delta (D,C) A)))). 
+pose proof (nateq (D,C) ( Delta (D,C) A) ( Delta (D,C) A) 
+ (Delta_arrow D C A A (id C A))  (id (FunctorCat (D,C)) ( Delta (D,C) A))  ).
+assumption.
+unfold Delta, FunctorCat.
+simpl.
+unfold NatId, Delta_arrow_eta.
+simpl.
+cut (forall (x: Obj D), ((fun _ : Obj D => id C A) x) = ((fun A0 : Obj D => id C (dobj (D, C) A A0)) x)).
+pose proof (ext (Obj D) (fun (d : Obj D) => hom C (A,A)) (fun _ : Obj D => id C A) 
+ (fun A0 : Obj D => id C (dobj (D, C) A A0)) ).
+assumption.
+intros.
+simpl.
+unfold dobj.
+reflexivity.
+Qed.
+
+Lemma Delta_comp : forall ( D C: Cat) (a b c: Obj C) (f : hom C (a,b))(g : hom C (b,c)),
+(Delta_arrow D C a c (comp C a b c f g)) = (comp (FunctorCat(D,C)) (Delta (D,C) a)(Delta (D,C) b) (Delta (D,C) c)
+(Delta_arrow D C a b f) (Delta_arrow D C b c g)).
+
+Proof.
+intros.
+cut ( eta (D,C) (Delta (D,C) a) (Delta (D,C) c)  (Delta_arrow D C a c (comp C a b c f g)) = eta 
+(D,C) (Delta (D,C) a) (Delta (D,C) c)  (comp (FunctorCat(D,C)) (Delta (D,C) a)(Delta (D,C) b) (Delta (D,C) c)
+(Delta_arrow D C a b f) (Delta_arrow D C b c g) ) ).
+
+pose proof (nateq  (D,C)  (Delta (D,C) a) (Delta (D,C) c) (Delta_arrow D C a c (comp C a b c f g))
+ (comp (FunctorCat(D,C)) (Delta (D,C) a)(Delta (D,C) b) (Delta (D,C) c)
+(Delta_arrow D C a b f) (Delta_arrow D C b c g))).
+
+assumption.
+unfold Delta, Delta_arrow, NatCompEta, Delta_arrow_eta.
+simpl.
+unfold NatCompEta.
+simpl.
+
+pose proof (ext (Obj D) (fun (x: Obj D) => hom C (a,c) ) (fun _ : Obj D => comp C a b c f g) 
+(fun A : Obj D => comp C (dobj (D, C) a A) (dobj (D, C) b A) (dobj (D, C) c A) f g) ).
+
+cut ( (forall x : Obj D,
+     (fun _ : Obj D => comp C a b c f g) x =
+     (fun A : Obj D =>
+      comp C (dobj (D, C) a A) (dobj (D, C) b A) (dobj (D, C) c A) f g) x)).
+assumption.
+intros.
+simpl.
+unfold dobj.
+reflexivity.
+Qed.
+
+Definition DeltaFunctor (D C: Cat) := mkFunctor
+ (C, (FunctorCat (D,C))) (Delta (D,C)) (Delta_arrow D C)  
+(Delta_id D C) (Delta_comp D C).
+
+
+(* finally, we can define a cone over a functor ! *)
+
+Definition ConeCat (D C : Cat) (F : Functor (D,C)) :=
+CommaCat C One (FunctorCat(D,C)) (DeltaFunctor D C) (OneToCat (FunctorCat(D,C)) F).
+
+Definition CoConeCat ( D C : Cat) (F : Functor (D,C)) := Op (ConeCat D C F).
+
+Definition Limit {D C : Cat} (F: Functor(D,C))  (L : Obj (ConeCat D C F)) := 
+Terminal (ConeCat D C F) L.
+
+Definition Complete (C :Cat):= forall (D: Cat) (F : Functor(D,C)), exists (L: Obj (ConeCat D C F)),
+Limit F L.
+
+(* obviously we need to control size with small and locally D *)
+
+(* initial object needed for colimits, define as terminal of opposite category *)
+
+(*To do: Adjunctions via unit-counit adjunctions. Need Godement product *)
+
+
+
+
+
+
+
 
 
 
 
  
+
 
 
 
