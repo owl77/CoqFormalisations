@@ -4,9 +4,10 @@
                     (minimality, stability, clarity, logic-centric and self-containedness)*)
 
 (* 17-08-23 : Defined functor categories, comma categories, diagonal functor, cone categories, (co)limits, 
-the category SET, presheaves, the terminal category. Adjunctions now are easy to define via unit-counit adjunctions*)
+the category SET, presheaves, Yoneda embedding, the terminal category. 
+Adjunctions now are easy to define via unit-counit adjunctions*)
 
-(*To do: Godement product, product categories, finite categories, simplicial sets *)
+(*To do: product categories, finite categories, simplicial sets, 2-categories, enriched categories *)
 
 Record Cat :=mkCat
 { Obj :  Type
@@ -22,11 +23,9 @@ comp A C D (comp A B C f g) h =   comp A B D f (comp B C D g h)
 (* Cat is a 'big' category. Must solve the problem of
 defining small and locally small categories as subtypes of Cat (needed for Yoneda embedding). 
 How is this done ? It is nice that Coq considers Set a subtype of Type so that we can define our
-category SET. One strategy for dealing with this problem is given further ahead.*)
+category SET. We solve this problem by coercion (on records). 
+https://www.dc.fi.udc.es/staff/freire/coqdoc/pauillac.inria.fr/coq/doc/no21.htm   *)
 
-
-
-Definition LocSmall (C : Cat) :=  forall (X : (Obj C)* (Obj C)), ((hom C) X = Set).
 
 Definition Arrows ( C :Cat) := sigT (hom C).
 
@@ -398,14 +397,103 @@ Definition yonobj (U: Cat) (C : Obj U) (X : Obj U):=
 Definition yonarr (U : Cat) (C : Obj U)(A B : Obj U) (f : (hom U)(A,B))
 := fun ( x : (hom U)(B, C)) => comp U A B C f x.
 
-(* Lemma yonid_f : forall (U : Cat) (C : Obj U)
-(A : Obj U), ( (forall (a b: Obj U) , hom  U(a,b) = Set) ->  (yonarr U C) A A ((id U) A) = (id SET) ((yonobj U C) A)).
-
-*)
+(* this doesn't work because of size problems. Rather we do the following: *)
 
 
+Record SmallCat := mkSmallCat
+{SmObj : Set;
+ Smhom: SmObj * SmObj ->  Set;
+ Smid : forall A: SmObj, Smhom (A,A);
+ Smcomp :  forall (A B C : SmObj) ( f: Smhom (A, B)) ( g : Smhom (B,C)), Smhom (A,C);
+ Smid_ax : forall (A B : SmObj) (f : Smhom (A,B)), (Smcomp A A B (Smid A) f = f) /\ (Smcomp A B B f (Smid B) = f);
+ Smass : forall (A B C D:SmObj)(f:Smhom (A,B))(g : Smhom (B,C))(h: Smhom (C,D)), 
+Smcomp A C D (Smcomp A B C f g) h =   Smcomp A B D f (Smcomp B C D g h) 
+}.
 
-(*  To do: constant functor, category of cones, (co)limits, adjunctions via triangular identities, simplicial sets,
+Definition SmOp ( U : SmallCat) := let hom2 := ( fun ( X : (SmObj U) * (SmObj U) )
+ => (Smhom U)(snd X, fst X)) in
+ mkSmallCat (SmObj U) hom2
+(Smid U) 
+(fun (A B C : SmObj U) ( f : hom2(A,B)) (g : hom2(B,C)) => (Smcomp U) C B A g f )
+(fun (A B : SmObj U)(f : hom2(A,B)) => conj_comm   (Smid_ax U B A f)) 
+(fun (A B C D :SmObj U)( f : hom2(A,B))(g : hom2(B,C))(h: hom2(C,D)) 
+=>  eq_comm ((Smass U) D C B A h g f )).
+
+
+Definition smI (U : SmallCat) := 
+mkCat (SmObj U) (Smhom U) (Smid U) (Smcomp U) (Smid_ax U) (Smass U).
+
+
+Definition yonobj1 (U: SmallCat) (C : SmObj U) (X : SmObj U):=
+(Smhom U)(X,C).
+
+
+Definition yonarr1 (U : SmallCat) (C : SmObj U)(A B : SmObj U) (f : (Smhom U)(A,B))
+:= fun ( x : (Smhom U)(B, C)) => Smcomp U A B C f x.
+
+Lemma yonid_f1 : forall (U : SmallCat) (C : SmObj U)
+(A : SmObj U), ((yonarr1 U C) A A ((Smid U) A) )= ((id SET) ((yonobj1 U C) A)).
+
+Proof.
+intros.
+unfold yonarr1.
+unfold yonobj1.
+simpl.
+unfold Sid.
+pose proof (ext (Smhom U (A,C)) (fun (x : Smhom U (A,C)) => Smhom U (A,C)) (fun x : Smhom U (A, C) => Smcomp U A A C (Smid U A) x)
+(fun a : Smhom U (A, C) => a) ).
+cut ( (forall x : Smhom U (A, C),
+     (fun x0 : Smhom U (A, C) => Smcomp U A A C (Smid U A) x0)
+       x = (fun a : Smhom U (A, C) => a) x ) ).
+assumption.
+simpl.
+intros.
+pose proof (Smid_ax U A C x).
+destruct H0.
+assumption.
+Qed.
+
+Lemma yonid_comp1: forall (U : SmallCat) (W: SmObj U) (A B C : SmObj U) ( f : Smhom U (A,B)) (g : Smhom U (B,C)),
+yonarr1 U W A C (Smcomp U A B C f g) = (comp SET) (yonobj1 U W C) (yonobj1 U W B) (yonobj1 U W A) (yonarr1 U W B C g)
+(yonarr1 U W A B f).
+
+
+Proof.
+intros.
+unfold yonarr1, yonobj1.
+simpl.
+unfold Scomp.
+pose proof (Smass U A B C W f g).
+pose proof (ext (Smhom U (C,W)) (fun (y: Smhom U (C,W)) => Smhom U (A,W) )
+(fun x : Smhom U (C, W) =>
+ Smcomp U A C W (Smcomp U A B C f g) x) (fun x : Smhom U (C, W) => Smcomp U A B W f (Smcomp U B C W g x)) ).
+
+
+cut ( (forall x : Smhom U (C, W),
+      (fun x0 : Smhom U (C, W) =>
+       Smcomp U A C W (Smcomp U A B C f g) x0) x =
+      (fun x0 : Smhom U (C, W) =>
+       Smcomp U A B W f (Smcomp U B C W g x0)) x)).
+
+assumption.
+intros.
+simpl.
+pose proof (Smass U A B C W f g x).
+assumption.
+Qed.
+
+
+Coercion smI : SmallCat >-> Cat.
+
+
+Definition Yoneda (C: SmallCat) (W : Obj C) := mkFunctor (smI C, Op SET)
+(yonobj1  C W) (yonarr1  C W) (yonid_f1 C W) (yonid_comp1 C W).
+
+(*   Yoneda : forall C : SmallCat, Obj C -> Functor (C, Op SET)*  Not quite, but almost what we want...     *)
+
+
+
+(* constant functor, category of cones, (co)limits, adjunctions via triangular identities, simplicial sets,
 representable functor *)
 
 
@@ -900,102 +988,14 @@ Terminal (ConeCat D C F) L.
 Definition Complete (C :Cat):= forall (D: Cat) (F : Functor(D,C)), exists (L: Obj (ConeCat D C F)),
 Limit F L.
 
-(* obviously we need to control size with small and locally D *)
+
+Definition Complete2 (C :Cat):= forall (D: SmallCat) (F : Functor(smI D,C)), exists (L: Obj (ConeCat D C F)),
+Limit F L.
+
 
 (* initial object needed for colimits, define as terminal of opposite category *)
 
-(*To do: Adjunctions via unit-counit adjunctions. Need Godement product *)
-
-
-Record SmallCat := mkSmallCat
-{SmObj : Set;
- Smhom: SmObj * SmObj ->  Set;
- Smid : forall A: SmObj, Smhom (A,A);
- Smcomp :  forall (A B C : SmObj) ( f: Smhom (A, B)) ( g : Smhom (B,C)), Smhom (A,C);
- Smid_ax : forall (A B : SmObj) (f : Smhom (A,B)), (Smcomp A A B (Smid A) f = f) /\ (Smcomp A B B f (Smid B) = f);
- Smass : forall (A B C D:SmObj)(f:Smhom (A,B))(g : Smhom (B,C))(h: Smhom (C,D)), 
-Smcomp A C D (Smcomp A B C f g) h =   Smcomp A B D f (Smcomp B C D g h) 
-}.
-
-
-Definition smI (U : SmallCat) := 
-mkCat (SmObj U) (Smhom U) (Smid U) (Smcomp U) (Smid_ax U) (Smass U).
-
-
-Definition yonobj1 (U: SmallCat) (C : SmObj U) (X : SmObj U):=
-(Smhom U)(X,C).
-
-
-Definition yonarr1 (U : SmallCat) (C : SmObj U)(A B : SmObj U) (f : (Smhom U)(A,B))
-:= fun ( x : (Smhom U)(B, C)) => Smcomp U A B C f x.
-
-Lemma yonid_f1 : forall (U : SmallCat) (C : SmObj U)
-(A : SmObj U), ((yonarr1 U C) A A ((Smid U) A) )= ((id SET) ((yonobj1 U C) A)).
-
-Proof.
-intros.
-unfold yonarr1.
-unfold yonobj1.
-simpl.
-unfold Sid.
-pose proof (ext (Smhom U (A,C)) (fun (x : Smhom U (A,C)) => Smhom U (A,C)) (fun x : Smhom U (A, C) => Smcomp U A A C (Smid U A) x)
-(fun a : Smhom U (A, C) => a) ).
-cut ( (forall x : Smhom U (A, C),
-     (fun x0 : Smhom U (A, C) => Smcomp U A A C (Smid U A) x0)
-       x = (fun a : Smhom U (A, C) => a) x ) ).
-assumption.
-simpl.
-intros.
-pose proof (Smid_ax U A C x).
-destruct H0.
-assumption.
-Qed.
-
-Lemma yonid_comp1: forall (U : SmallCat) (W: SmObj U) (A B C : SmObj U) ( f : Smhom U (A,B)) (g : Smhom U (B,C)),
-yonarr1 U W A C (Smcomp U A B C f g) = (comp SET) (yonobj1 U W C) (yonobj1 U W B) (yonobj1 U W A) (yonarr1 U W B C g)
-(yonarr1 U W A B f).
-
-
-Proof.
-intros.
-unfold yonarr1, yonobj1.
-simpl.
-unfold Scomp.
-pose proof (Smass U A B C W f g).
-pose proof (ext (Smhom U (C,W)) (fun (y: Smhom U (C,W)) => Smhom U (A,W) )
-(fun x : Smhom U (C, W) =>
- Smcomp U A C W (Smcomp U A B C f g) x) (fun x : Smhom U (C, W) => Smcomp U A B W f (Smcomp U B C W g x)) ).
-
-
-cut ( (forall x : Smhom U (C, W),
-      (fun x0 : Smhom U (C, W) =>
-       Smcomp U A C W (Smcomp U A B C f g) x0) x =
-      (fun x0 : Smhom U (C, W) =>
-       Smcomp U A B W f (Smcomp U B C W g x0)) x)).
-
-assumption.
-intros.
-simpl.
-pose proof (Smass U A B C W f g x).
-assumption.
-Qed.
-
-
-(* To do Op for small categories..*)
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
+(*To do: Adjunctions via unit-counit adjunctions.  *)
 
 
 
