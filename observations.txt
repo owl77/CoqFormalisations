@@ -7,4 +7,17 @@ To 1) correspond propositions and to 2) records.
 Thus it makes no sense to a say a Functor or a Natural Transformation is a X such that....
 But we can say that an object T is a category C is a terminal object if such and such....
 
+Hegel's Logic, Type Theory, Logic, Category Theory and Software.
+===============================================================
 
+The profound duality between initial and terminal objects.
+The initial object, Nichts,  the empty set, the empty type, Empty_Set, False,  through contradiction generates
+everything (ex falso): the limit of a diagram from empty category the terminal object.
+The terminal object, Sein, the singleton, identity, Truth. Limits terminal cones.
+Types from the empty type can be inhabited just as there are functions from the empty set.
+The initial category and terminal category.
+Constructing in Coq a category with two objects and only identity arrows (for products via terminal cones):
+what a profound interplay between the empty type and singletons, and identity through induction.
+Induction is everything.
+In Plato's Sophist there is a perplexity over falsehood.
+Non-existent beings or predicates and false propositions. Same paradox of an empty type.
