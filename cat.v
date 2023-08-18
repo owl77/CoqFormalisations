@@ -4,8 +4,11 @@
                     (minimality, stability, clarity, logic-centric and self-containedness)*)
 
 (* 17-08-23 : Defined functor categories, comma categories, diagonal functor, cone categories, (co)limits, 
-the category SET, presheaves, Yoneda embedding, the terminal category. 
+the category SET, presheaves, Yoneda embedding, the terminal category, category with two objects. 
 Adjunctions now are easy to define via unit-counit adjunctions*)
+
+(* 18-08-23 : Defined category with two objects and minimal arrows. Subtle interplay between
+Empty_set and singletons, induction, and natural deduction negation law *)
 
 (*To do: product categories, finite categories, simplicial sets, 2-categories, enriched categories *)
 
@@ -19,6 +22,7 @@ Record Cat :=mkCat
 comp A C D (comp A B C f g) h =   comp A B D f (comp B C D g h) 
 }.
 
+(*  some hom(A,B) may be Empty_set *)
 
 (* Cat is a 'big' category. Must solve the problem of
 defining small and locally small categories as subtypes of Cat (needed for Yoneda embedding). 
@@ -424,12 +428,15 @@ Definition smI (U : SmallCat) :=
 mkCat (SmObj U) (Smhom U) (Smid U) (Smcomp U) (Smid_ax U) (Smass U).
 
 
+Coercion smI : SmallCat >-> Cat.
+
+
 Definition yonobj1 (U: SmallCat) (C : SmObj U) (X : SmObj U):=
 (Smhom U)(X,C).
 
 
 Definition yonarr1 (U : SmallCat) (C : SmObj U)(A B : SmObj U) (f : (Smhom U)(A,B))
-:= fun ( x : (Smhom U)(B, C)) => Smcomp U A B C f x.
+:= fun ( x : (hom U)(B, C)) => comp U A B C f x.
 
 Lemma yonid_f1 : forall (U : SmallCat) (C : SmObj U)
 (A : SmObj U), ((yonarr1 U C) A A ((Smid U) A) )= ((id SET) ((yonobj1 U C) A)).
@@ -482,8 +489,6 @@ pose proof (Smass U A B C W f g x).
 assumption.
 Qed.
 
-
-Coercion smI : SmallCat >-> Cat.
 
 
 Definition Yoneda (C: SmallCat) (W : Obj C) := mkFunctor (smI C, Op SET)
@@ -998,13 +1003,135 @@ Limit F L.
 (*To do: Adjunctions via unit-counit adjunctions.  *)
 
 
+Inductive IdA :Set :=
+  ida : IdA.
+
+Inductive IdB :Set :=
+  idb : IdB.
+
+Inductive Two : Set :=
+ one : Two
+| two : Two.
+
+Definition Two_hom : Two * Two -> Set := fun (x : Two * Two ) => 
+let (a,b) := x in match a,b with | one, one  => IdA | two, two => IdB | _,_ => Empty_set end.
+
+
+Definition Two_id : forall (x : Two), Two_hom (x,x) := fun (x: Two) => match x with | one => ida 
+| two => idb end.
+
+Lemma Two_equals : forall ( x y : Two), Two_hom (x,y) -> (x = y).
+
+Proof.
+intros.
+induction x,y.
+induction H.
+reflexivity.
+simpl in H.
+contradiction H.
+simpl in H.
+contradiction H.
+reflexivity.
+Qed.
+
+Lemma Two_trans : forall (x y z : Two), Two_hom (x,y) -> Two_hom (y,z) -> Two_hom(x,z).
+
+Proof.
+intros.
+pose proof Two_equals x y H.
+rewrite <- H1 in H0.
+assumption.
+Qed.
+
+
+Lemma Two_sing :  forall ( x y : IdA ), x = y.
+Proof.
+intros.
+induction x ,y.
+reflexivity.
+Qed.
+
+
+
+Lemma Two_sing' :  forall ( x y : IdB ), x = y.
+Proof.
+intros.
+induction x ,y.
+reflexivity.
+Qed.
+
+
+Definition Two_comp : forall (x y z : Two)(f : Two_hom (x,y))(g : Two_hom (y,z)), Two_hom(x,z)
+:= fun (x y z : Two)(f : Two_hom (x,y))(g : Two_hom (y,z)) => Two_trans x y z f g.
+
+Lemma Two_id_ax : forall (x y : Two) ( f : Two_hom (x,y)),
+(Two_comp x x y (Two_id x) f = f) /\ (Two_comp x y y f (Two_id y) = f).
+
+Proof.
+intros.
+induction x,y,f.
+simpl.
+unfold Two_comp.
+split.
+pose proof Two_sing (Two_trans one one one ida ida)  ida.
+assumption.
+pose proof Two_sing  (Two_trans one one one ida ida)  ida.
+assumption.
+split.
+pose proof Two_sing' (Two_comp two two two (Two_id two) idb)  idb.
+assumption.
+pose proof Two_sing' (Two_comp two two two idb (Two_id two)) idb.
+assumption.
+Qed.
+
+
+
+Lemma Two_sing2 :  forall (a b : Two) ( x y : Two_hom(a,b) ), x = y.
+
+Proof.
+intros.
+induction a,b.
+simpl in x,y.
+pose proof Two_sing x y.
+assumption.
+simpl in x,y.
+contradiction x.
+simpl in x,y.
+contradiction x.
+simpl in x,y.
+pose proof Two_sing' x y.
+assumption.
+Qed.
+
+
+
+Definition Two_ass : forall (x y z w : Two) (f :Two_hom (x,y))(g : Two_hom(y,z))(h: Two_hom(z,w)),
+Two_comp x z w (Two_comp x y z f g) h = Two_comp x y w f (Two_comp y z w g h).
+
+
+Proof.
+intros.
+unfold Two_comp.
+induction x,w.
+pose proof Two_sing2 one one  (Two_trans one z one (Two_trans one y z f g) h)
+ (Two_trans one y one f (Two_trans y z one g h)).
+assumption.
+pose proof Two_sing2 one two  (Two_trans one z two (Two_trans one y z f g) h)
+ (Two_trans one y two f (Two_trans y z two g h)).
+assumption.
+
+pose proof Two_sing2 two one  (Two_trans two z one (Two_trans two y z f g) h)
+ (Two_trans two y one f (Two_trans y z one g h)).
+assumption.
+pose proof Two_sing2 two two  (Two_trans two z two (Two_trans two y z f g) h)
+ (Two_trans two y two f (Two_trans y z two g h)).
+assumption.
+Qed.
 
 
 
 
-
-
-
+Definition TwoCat := mkCat Two Two_hom Two_id Two_comp Two_id_ax Two_ass.
 
 
 
