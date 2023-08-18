@@ -21,3 +21,6 @@ what a profound interplay between the empty type and singletons, and identity th
 Induction is everything.
 In Plato's Sophist there is a perplexity over falsehood.
 Non-existent beings or predicates and false propositions. Same paradox of an empty type.
+The singleton, terminal object, Truth, is also the One. The one identifies all, creates identity from being (inhabitation).
+The core concepts in Plato's dialogues such as Being, One, Truth, Sameness can be seen from the perspective of type theory, logic
+and category theory.
