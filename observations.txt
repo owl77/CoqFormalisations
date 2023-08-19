@@ -25,7 +25,8 @@ The singleton, terminal object, Truth, is also the One. The one identifies all, 
 The core concepts in Plato's dialogues such as Being, One, Truth, Sameness can be seen from the perspective of type theory, logic
 and category theory.
 
-In the Sophists we deal with the categories of Being, Non-Being, Unity, Whole, Parts, Sameness, Difference, Participation.  In the first section of the Parmenides
+In the Sophist we deal with the categories of Being (terminal object, Type), Non-Being (initial object), Unity (singleton), Whole, Parts (exponentials), Sameness, Difference, 
+Participation.  In the first section of the Parmenides
 we have the Type Hierarchy (the third man).
 
 
