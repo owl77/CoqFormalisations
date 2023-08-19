@@ -10,7 +10,9 @@ Adjunctions now are easy to define via unit-counit adjunctions*)
 (* 18-08-23 : Defined category with two objects and minimal arrows. Subtle interplay between
 Empty_set and singletons, induction, and natural deduction negation law *)
 
-(*To do: product categories, finite categories, simplicial sets, 2-categories, enriched categories *)
+(*To do: Godement product, composition of functors, triangle identities,
+adjunctions, product categories, finite categories, simplicial sets, 2-categories, 
+enriched categories *)
 
 Record Cat :=mkCat
 { Obj :  Type
@@ -1132,6 +1134,55 @@ Qed.
 
 
 Definition TwoCat := mkCat Two Two_hom Two_id Two_comp Two_id_ax Two_ass.
+
+(* the following will be useful for simplicial sets *)
+
+
+Inductive fList {A: Type }: forall (n : nat), Type  :=
+| nil : fList 0
+| cons : forall ( n : nat), A -> fList n -> fList (S n).
+
+
+
+Fixpoint delta (n : nat) : (fList n) := match n with
+| 0 => nil
+| S n => cons n (S n) (delta n) end.
+
+
+
+(* now composition of functors and Godement product *)
+
+
+Definition FuncComp_obj {A B C :Cat} (F : Functor (A,B)) (G : Functor (B,C))  :=
+fun ( a : Obj A) =>  obj (B,C) G (obj (A,B) F a).
+
+
+
+Definition FuncComp_arr {A B C :Cat} (F : Functor (A,B)) (G : Functor (B,C)) :=
+fun ( a b : Obj A) (f : hom A (a,b))  =>  arr (B,C) G ( obj (A,B) F a  )
+ (obj (A,B) F b ) (arr (A,B) F a b f). 
+
+
+Lemma FuncComp_id_ax : forall (A B C : Cat)(F : Functor (A,B)) (G : Functor (B,C))
+(a : Obj A),    FuncComp_arr F G a a (id A a) =  id C (FuncComp_obj F G a).
+
+Proof.
+intros.
+unfold FuncComp_arr.
+unfold FuncComp_obj.
+pose proof f_id (A,B) F a.
+simpl in H.
+rewrite -> H.
+pose proof f_id (B,C) G  (obj (A, B) F a).
+simpl in H0.
+rewrite -> H0.
+reflexivity.
+Qed.
+
+
+
+ 
+ 
 
 
 
