@@ -29,4 +29,23 @@ In the Sophist we deal with the categories of Being (terminal object, Type), Non
 Participation.  In the first section of the Parmenides
 we have the Type Hierarchy (the third man).
 
+Sophist 237
+
+Propositions, Types, Sets, Objects in a Category = ontology
+
+This section is about non-being, the empty type, falsity.
+
+Predication is inhabitation.   Or reference is inhabitation.   The ex falso quodlibet paradox. To reasoning about a type
+one must assume the type is inhabited. And this being so anything can be deduce.
+
+Talking about non-being =  assuming non-being is inhabited.  
+
+
+
+
+
+
+
+
+
 
