@@ -1,5 +1,5 @@
 
-(* The two rules: 1) Avoid curly brackets as much as possible (explicitness)
+(* The two rules: 1) Avoid curly brackets and _ as much as possible (explicitness)
                   2) Import nothing extra  beyond standard library
                     (minimality, stability, clarity, logic-centric and self-containedness)*)
 
@@ -10,7 +10,10 @@ Adjunctions now are easy to define via unit-counit adjunctions*)
 (* 18-08-23 : Defined category with two objects and minimal arrows. Subtle interplay between
 Empty_set and singletons, induction, and natural deduction negation law *)
 
-(*To do: Godement product, composition of functors, triangle identities,
+(* 20-08-23 : Functor composition, Godement product, identity functor, lists with given length,
+preparation for simplicial sets *)
+
+(*To do: triangle identities,
 adjunctions, product categories, finite categories, simplicial sets, 2-categories, 
 enriched categories *)
 
@@ -1163,7 +1166,7 @@ fun ( a b : Obj A) (f : hom A (a,b))  =>  arr (B,C) G ( obj (A,B) F a  )
  (obj (A,B) F b ) (arr (A,B) F a b f). 
 
 
-Lemma FuncComp_id_ax : forall (A B C : Cat)(F : Functor (A,B)) (G : Functor (B,C))
+Lemma FuncComp_f_id : forall (A B C : Cat)(F : Functor (A,B)) (G : Functor (B,C))
 (a : Obj A),    FuncComp_arr F G a a (id A a) =  id C (FuncComp_obj F G a).
 
 Proof.
@@ -1178,6 +1181,265 @@ simpl in H0.
 rewrite -> H0.
 reflexivity.
 Qed.
+
+Lemma FuncComp_f_comp : forall (A B C : Cat)(F : Functor (A,B)) (G : Functor (B,C))
+(a b c : Obj A) (f : hom A (a,b)) ( g : hom A (b,c)),
+FuncComp_arr F G a c ( comp A a b c f g) = comp C (FuncComp_obj F G a)
+(FuncComp_obj F G b) (FuncComp_obj F G c) (FuncComp_arr F G a b f) (FuncComp_arr F G b c g).
+
+Proof.
+intros.
+unfold FuncComp_arr.
+unfold FuncComp_obj.
+pose proof f_comp (A, B) F a b c f g.
+simpl in H.
+rewrite -> H.
+pose proof f_comp (B,C) G (obj (A, B) F a) (obj (A, B) F b) (obj (A, B) F c) (arr (A, B) F a b f)
+     (arr (A, B) F b c g).
+simpl in H0.
+rewrite -> H0.
+reflexivity.
+Qed.
+
+Definition FuncComp {A B C : Cat} (F : Functor (A,B))( G : Functor (B,C)) : Functor(A,C) :=
+mkFunctor (A,C) (FuncComp_obj F G) (FuncComp_arr F G)  (FuncComp_f_id A B C F G) (FuncComp_f_comp A B C F G).
+
+
+Definition Godement_eta {A B C : Cat} { F G : Functor (A,B)}{H I : Functor (B,C)}
+( e : NatTrans (A,B) F G ) ( f : NatTrans (B,C) H I ):=
+
+fun (a : Obj A) =>  let G1 :=   arr (B,C) H  (obj (A,B) F a) (obj (A,B) G a)
+ ( eta (A,B) F G e a)
+in  let G2 := eta (B,C) H I f  (obj (A,B) G a) in 
+comp C (obj (A,C) (FuncComp F H) a) (obj (A,C) (FuncComp G H) a) 
+(obj (A,C) (FuncComp  G I) a) G1 G2.
+
+(* explanation:
+
+                   a               F a  --e-->   G a
+
+
+  F == e ==> G     H ==f==> I      H F a -----> H G a
+
+
+                                   H G a --f---> I G a
+   
+
+                     composing     H F a  ------> I G a 
+
+
+
+*)
+
+Theorem Godement_com : forall {A B C : Cat} ( F G : Functor (A,B)) (H I : Functor (B,C))
+( e : NatTrans (A,B) F G ) ( f : NatTrans (B,C) H I ),
+forall (a  b : Obj A) ( m : hom A (a,b) ),  
+(comp C)  (obj (A,C) (FuncComp F H)  a) (obj (A,C) (FuncComp F H) b) (obj (A,C) (FuncComp  G I) b )
+   (arr (A,C) (FuncComp F H) a b m) (Godement_eta e f b ) 
+= (comp C   (obj (A,C) (FuncComp F H) a) (obj (A,C) (FuncComp G I) a)
+ (obj (A,C) (FuncComp G I) b) (Godement_eta e f a) (arr (A,C) (FuncComp G I) a b m)) .
+
+Proof.
+intros.
+unfold FuncComp.
+unfold Godement_eta.
+unfold FuncComp_obj.
+unfold FuncComp_arr.
+unfold FuncComp_obj.
+simpl.
+unfold FuncComp_obj.
+pose proof nat_com (A,B) F G e a b m.
+simpl in H0.
+pose proof  f_comp (B,C) H  (obj (A, B) F a) (obj (A, B) F b) (obj (A, B) G b) (arr (A, B) F a b m)
+       (eta (A, B) F G e b).
+simpl in H1.
+pose proof f_comp (B,C) H (obj (A, B) F a) (obj (A, B) G a) (obj (A, B) G b) (eta (A, B) F G e a)
+       (arr (A, B) G a b m).
+simpl in H2.
+
+rewrite <- H0 in H2.
+rewrite -> H1 in H2.
+
+pose proof nat_com (B, C) H I f  (obj (A, B) G a)
+       (obj (A, B) G b) (arr (A, B) G a b m).
+
+simpl in H3.
+
+pose proof ass C (obj (B, C) H (obj (A, B) F a)) (obj (B, C) H (obj (A, B) G a)) 
+(obj (B, C) I (obj (A, B) G a)) (obj (B, C) I (obj (A, B) G b)) 
+ (arr (B, C) H (obj (A, B) F a) (obj (A, B) G a) (eta (A, B) F G e a))
+ (eta (B, C) H I f (obj (A, B) G a))
+ (arr (B, C) I (obj (A, B) G a) (obj (A, B) G b) (arr (A, B) G a b m)).
+
+rewrite -> H4.
+
+rewrite <- H3.
+
+pose proof ass C (obj (B, C) H (obj (A, B) F a)) (obj (B, C) H (obj (A, B) G a)) 
+ (obj (B, C) H (obj (A, B) G b))  (obj (B, C) I (obj (A, B) G b)) 
+ (arr (B, C) H (obj (A, B) F a) (obj (A, B) G a) (eta (A, B) F G e a))
+ (arr (B, C) H (obj (A, B) G a) (obj (A, B) G b) (arr (A, B) G a b m))
+     (eta (B, C) H I f (obj (A, B) G b)).
+
+rewrite <- H5.
+
+rewrite <- H2.
+
+pose proof ass C (obj (B, C) H (obj (A, B) F a)) (obj (B, C) H (obj (A, B) F b))
+ (obj (B, C) H (obj (A, B) G b))
+  (obj (B, C) I (obj (A, B) G b))
+  (arr (B, C) H (obj (A, B) F a) (obj (A, B) F b) (arr (A, B) F a b m))
+     (arr (B, C) H (obj (A, B) F b) (obj (A, B) G b) (eta (A, B) F G e b))
+  (eta (B, C) H I f (obj (A, B) G b)).
+
+rewrite -> H6.
+
+reflexivity.
+Qed.
+
+Definition Godement {A B C : Cat} (F G : Functor (A,B)) (H I : Functor (B,C))
+(e : NatTrans (A,B) F G)(f : NatTrans (B,C) H I)
+:= mkNatTrans (A,C) (FuncComp F H) (FuncComp G I) (Godement_eta  e f) (Godement_com F G H I e f).
+
+
+
+(* Identity functor *)
+
+Definition IdFunctor_obj (A : Cat) := fun (x : Obj A) => x.
+Definition IdFunctor_arr (A: Cat) := fun (a b : Obj A)(f : hom A (a,b)) => f.
+
+Lemma  IdFunctor_id : forall (A : Cat) (a : Obj A), IdFunctor_arr A a a (id A a) = 
+(id A (IdFunctor_obj A a)).
+Proof.
+intros.
+unfold IdFunctor_arr.
+unfold IdFunctor_obj.
+reflexivity.
+Qed.
+
+Lemma IdFunctor_comp :  forall (A : Cat) (a b c  : Obj A )( f: hom A (a,b)) ( g: hom A (b,c)), 
+IdFunctor_arr A a c ((comp A) a b c f g) = (comp A) (IdFunctor_obj A a)
+ (IdFunctor_obj A  b) (IdFunctor_obj A c) (IdFunctor_arr A a b f) (IdFunctor_arr A b c g).
+
+Proof.
+intros.
+unfold IdFunctor_arr.
+unfold IdFunctor_obj.
+reflexivity.
+Qed.
+
+
+Definition IdFunctor (A : Cat) : Functor (A,A) := mkFunctor (A,A) (IdFunctor_obj A) (IdFunctor_arr A)
+(IdFunctor_id A) (IdFunctor_comp A).
+
+
+(* a certain coherence associativity natural tranformation required *)
+
+Definition coh_eta1 : forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a : Obj A),
+
+obj _ (FuncComp (FuncComp F G) F) a = obj _  (FuncComp F (FuncComp G F)) a.
+
+Proof.
+intros.
+unfold FuncComp.
+simpl.
+unfold FuncComp_arr.
+unfold FuncComp_obj.
+simpl.
+reflexivity.
+Qed.
+
+Definition coh_eta2 : forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a : Obj A),
+hom B (obj _ (FuncComp (FuncComp F G) F) a,  obj _  (FuncComp F (FuncComp G F)) a).
+
+Proof.
+intros.
+pose proof  coh_eta1 A B F G a.
+rewrite -> H.
+pose proof id B (obj (A, B) (FuncComp F (FuncComp G F)) a).
+assumption.
+Qed.
+
+(*
+Lemma coh_eta3 :  forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a : Obj A),
+coh_eta2 A B F G a = id B (obj (A, B) (FuncComp F (FuncComp G F)) a).
+
+Proof.
+intros.
+simpl.
+
+
+
+
+
+
+
+
+Lemma coh_com :  forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)),
+let F1 := (FuncComp (FuncComp F G) F) in let F2 := (FuncComp F (FuncComp G F)) in
+forall (a b : Obj A ) ( f : (hom A (a,b) )),  
+(comp B)  ((obj (A,B) F1  ) a) ((obj (A,B) F1) b) ((obj (A,B) F2) b )   
+((arr (A,B) F1) a b f) (coh_eta2 A B F G b) 
+= (comp B  ((obj (A,B) F1) a) ((obj (A,B) F2) a) ((obj (A,B) F2) b) (coh_eta2 A B F G a)
+ ((arr (A,B) F2) a b f)).
+
+
+Proof.
+
+intros.
+pose proof id_ax B .
+pose proof coh_eta2 A B F G a.
+pose proof coh_eta2 A B F G b.
+
+*)
+
+
+
+
+
+
+Record Adjunction {A B : Cat} (F : Functor (A,B))(G : Functor (B,A)):= mkAdjunction {
+ Epsilon :  NatTrans (A,A) (FuncComp F G) (IdFunctor A);
+ Eta  :     NatTrans (B,B)  (IdFunctor B) (FuncComp G F); }. 
+
+
+(*
+ triangle : (NatComp (A,B)  (FuncComp F (IdFunctor B))  (FuncComp F (FuncComp G F))
+ (FuncComp (IdFunctor A) F)
+ (Godement F F (IdFunctor B) (FuncComp G F) (IdNat (A,B) F) Eta) 
+ (Godement (FuncComp F G) (IdFunctor A) F F Epsilon (IdNat(A,B) F)) )  = (IdNat (A,B) F)
+ } .
+
+  (NatComp (A,B)  (FuncComp F (IdFunctor B))  (FuncComp F (FuncComp G F))
+ (FuncComp (IdFunctor A) F)
+ (Godement F F (IdFunctor B) (FuncComp G F) (IdNat (A,B) F) Eta) 
+ (Godement (FuncComp F G) (IdFunctor A) F F Epsilon (IdNat(A,B) F)) )  =
+
+ (IdNat (A,B) F
+
+Problem we need associativity for functor record types. The old equality problem.
+
+The term "Godement (FuncComp F G) (IdFunctor A) F F Epsilon (IdNat (A, B) F)" has type
+ "NatTrans (A, B) (FuncComp (FuncComp F G) F) (FuncComp (IdFunctor A) F)"
+while it is expected to have type
+ "NatTrans (A, B) (FuncComp F (FuncComp G F)) (FuncComp (IdFunctor A) F)".
+
+Solution: think coherence diagrams.
+
+*)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
