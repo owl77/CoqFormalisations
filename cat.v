@@ -1333,9 +1333,9 @@ Definition IdFunctor (A : Cat) : Functor (A,A) := mkFunctor (A,A) (IdFunctor_obj
 (IdFunctor_id A) (IdFunctor_comp A).
 
 
-(* a certain coherence associativity natural tranformation required *)
+(*  associativity of composition of functors *)
 
-Definition coh_eta1 : forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a : Obj A),
+Lemma coh_obj : forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a : Obj A),
 
 obj _ (FuncComp (FuncComp F G) F) a = obj _  (FuncComp F (FuncComp G F)) a.
 
@@ -1349,52 +1349,60 @@ simpl.
 reflexivity.
 Qed.
 
-Definition coh_eta2 : forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a : Obj A),
-hom B (obj _ (FuncComp (FuncComp F G) F) a,  obj _  (FuncComp F (FuncComp G F)) a).
+Lemma coh_arr : forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A))
+ (a b:  Obj A) ( f : hom A (a,b)),
+
+arr _ (FuncComp (FuncComp F G) F) a b f = arr _  (FuncComp F (FuncComp G F)) a b f.
 
 Proof.
 intros.
-pose proof  coh_eta1 A B F G a.
+unfold FuncComp.
+simpl.
+unfold FuncComp_arr.
+unfold FuncComp_obj.
+simpl.
+reflexivity.
+
+Qed.
+
+Definition coh1 : forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a : Obj A),
+hom B ( obj _ (FuncComp (FuncComp F G) F) a, obj _  (FuncComp F (FuncComp G F)) a ).
+
+Proof.
+intros.
+pose proof coh_obj A B F G a.
+pose proof id B (obj _ (FuncComp (FuncComp F G) F) a).
 rewrite -> H.
-pose proof id B (obj (A, B) (FuncComp F (FuncComp G F)) a).
 assumption.
 Qed.
 
-(*
-Lemma coh_eta3 :  forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a : Obj A),
-coh_eta2 A B F G a = id B (obj (A, B) (FuncComp F (FuncComp G F)) a).
+
+Lemma coh2 : forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a : Obj A),
+forall (b : Obj B), hom B ( obj _ (FuncComp (FuncComp F G) F) a, b )
+= hom B ( obj _  (FuncComp F (FuncComp G F)) a, b ).
 
 Proof.
 intros.
-simpl.
+pose proof coh_obj A B F G a.
+rewrite -> H.
+reflexivity.
+Qed.
 
 
 
+Definition coh3 (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a : Obj A):
+hom B ( obj _ (FuncComp (FuncComp F G) F) a, obj _  (FuncComp F (FuncComp G F)) a)
+:=  id B ( obj _ (FuncComp (FuncComp F G) F) a ).
 
 
-
-
-
-Lemma coh_com :  forall (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)),
-let F1 := (FuncComp (FuncComp F G) F) in let F2 := (FuncComp F (FuncComp G F)) in
-forall (a b : Obj A ) ( f : (hom A (a,b) )),  
-(comp B)  ((obj (A,B) F1  ) a) ((obj (A,B) F1) b) ((obj (A,B) F2) b )   
-((arr (A,B) F1) a b f) (coh_eta2 A B F G b) 
-= (comp B  ((obj (A,B) F1) a) ((obj (A,B) F2) a) ((obj (A,B) F2) b) (coh_eta2 A B F G a)
- ((arr (A,B) F2) a b f)).
-
-
-Proof.
-
-intros.
-pose proof id_ax B .
-pose proof coh_eta2 A B F G a.
-pose proof coh_eta2 A B F G b.
-
-*)
-
-
-
+Axiom coh4 : forall  (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a b: Obj A)(f : hom A (a,b)),
+(comp B) ( obj _ (FuncComp (FuncComp F G) F) a) ( obj _ (FuncComp (FuncComp F G) F) b) 
+(obj _  (FuncComp F (FuncComp G F)) b)
+   ((arr (A,B) (FuncComp (FuncComp F G) F) ) a b f) (coh3 A B F G b) 
+= (comp B) 
+ ( obj _ (FuncComp (FuncComp F G) F) a) 
+(obj _  (FuncComp F (FuncComp G F)) a) (obj _  (FuncComp F (FuncComp G F)) b)
+ (coh3 A B F G a) ((arr (A,B)  (FuncComp F (FuncComp G F)) ) a b f).
 
 
 
@@ -1402,49 +1410,6 @@ Record Adjunction {A B : Cat} (F : Functor (A,B))(G : Functor (B,A)):= mkAdjunct
  Epsilon :  NatTrans (A,A) (FuncComp F G) (IdFunctor A);
  Eta  :     NatTrans (B,B)  (IdFunctor B) (FuncComp G F); }. 
 
-
-(*
- triangle : (NatComp (A,B)  (FuncComp F (IdFunctor B))  (FuncComp F (FuncComp G F))
- (FuncComp (IdFunctor A) F)
- (Godement F F (IdFunctor B) (FuncComp G F) (IdNat (A,B) F) Eta) 
- (Godement (FuncComp F G) (IdFunctor A) F F Epsilon (IdNat(A,B) F)) )  = (IdNat (A,B) F)
- } .
-
-  (NatComp (A,B)  (FuncComp F (IdFunctor B))  (FuncComp F (FuncComp G F))
- (FuncComp (IdFunctor A) F)
- (Godement F F (IdFunctor B) (FuncComp G F) (IdNat (A,B) F) Eta) 
- (Godement (FuncComp F G) (IdFunctor A) F F Epsilon (IdNat(A,B) F)) )  =
-
- (IdNat (A,B) F
-
-Problem we need associativity for functor record types. The old equality problem.
-
-The term "Godement (FuncComp F G) (IdFunctor A) F F Epsilon (IdNat (A, B) F)" has type
- "NatTrans (A, B) (FuncComp (FuncComp F G) F) (FuncComp (IdFunctor A) F)"
-while it is expected to have type
- "NatTrans (A, B) (FuncComp F (FuncComp G F)) (FuncComp (IdFunctor A) F)".
-
-Solution: think coherence diagrams.
-
-*)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
- 
 
 
 
