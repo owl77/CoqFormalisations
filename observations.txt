@@ -23,7 +23,10 @@ In Plato's Sophist there is a perplexity over falsehood.
 Non-existent beings or predicates and false propositions. Same paradox of an empty type.
 The singleton, terminal object, Truth, is also the One. The one identifies all, creates identity from being (inhabitation).
 The core concepts in Plato's dialogues such as Being, One, Truth, Sameness can be seen from the perspective of type theory, logic
-and category theory.
+and category theory
+
+Tabak - Plato's Parmenides reconsidered. Contra Proclus:  It is the Sophist not the dialectical section of the Parmenides (which illustrates sophistical fallacies) that
+should be considered the definite mature expression of Plato's theory.
 
 In the Sophist we deal with the categories of Being (terminal object, Type), Non-Being (initial object), Unity (singleton), Whole, Parts (exponentials), Sameness, Difference, 
 Participation.  In the first section of the Parmenides
@@ -36,12 +39,7 @@ Propositions, Types, Sets, Fibred Category = ontology
 This section is about non-being, the empty type, falsity.
 
 Predication is inhabitation.   Or reference is inhabitation.   The ex falso quodlibet paradox. To reasoning about a type
-one must assume the type is inhabited. And this being so anything can be deduced through law of contradiction
-
-
--|-
-------------
-A
+one must assume the type is inhabited. And this being so anything can be deduced through law of contradiction (in natural deduction).
 
 Talking about non-being =  assuming non-being is inhabited.  
 
@@ -63,6 +61,8 @@ forall x, exists y, Name(x,y) and Name (y) and Meaning (y, x).
 
 if forall x, x = one, then Name (x,y) => x = y. Name of a name. One a name and a name of a name.
 But there remains the duality between name and reference.
+
+"This expression". 
 
 
 
