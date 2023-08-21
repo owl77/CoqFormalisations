@@ -13,8 +13,9 @@ Empty_set and singletons, induction, and natural deduction negation law *)
 (* 20-08-23 : Functor composition, Godement product, identity functor, lists with given length,
 preparation for simplicial sets *)
 
-(*To do: triangle identities,
-adjunctions, product categories, finite categories, simplicial sets, 2-categories, 
+(* 21-08-23 : Adjunctions via triangle identities (on eta not via Godement products)*)
+
+(*To do : Kan extension, product categories, finite categories, simplicial sets, 2-categories, 
 enriched categories *)
 
 Record Cat :=mkCat
@@ -1433,7 +1434,9 @@ id D (obj _ G b) =
 }.
 
 
+(* now makes connection with other definitions *)
 
+(* to do Kan extension *)
 
 
 
