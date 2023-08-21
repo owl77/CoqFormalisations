@@ -1395,20 +1395,46 @@ hom B ( obj _ (FuncComp (FuncComp F G) F) a, obj _  (FuncComp F (FuncComp G F)) 
 :=  id B ( obj _ (FuncComp (FuncComp F G) F) a ).
 
 
-Axiom coh4 : forall  (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a b: Obj A)(f : hom A (a,b)),
+(* Strategy to build a natural transformation between (FuncComp (FuncComp F G) F) 
+and (FuncComp (FuncComp F G) F). Does not seem to work,
+
+  Lemma coh4 : forall  (A  B :Cat) (F : Functor (A,B))(G : Functor (B,A)) (a b: Obj A)(f : hom A (a,b)),
 (comp B) ( obj _ (FuncComp (FuncComp F G) F) a) ( obj _ (FuncComp (FuncComp F G) F) b) 
 (obj _  (FuncComp F (FuncComp G F)) b)
    ((arr (A,B) (FuncComp (FuncComp F G) F) ) a b f) (coh3 A B F G b) 
 = (comp B) 
  ( obj _ (FuncComp (FuncComp F G) F) a) 
 (obj _  (FuncComp F (FuncComp G F)) a) (obj _  (FuncComp F (FuncComp G F)) b)
- (coh3 A B F G a) ((arr (A,B)  (FuncComp F (FuncComp G F)) ) a b f).
+ (coh3 A B F G a) ((arr (A,B)  (FuncComp F (FuncComp G F)) ) a b f).   *)
 
+(* Cannot write triangle identities as full natural transformation equalities due to above problem.
 
 
 Record Adjunction {A B : Cat} (F : Functor (A,B))(G : Functor (B,A)):= mkAdjunction {
  Epsilon :  NatTrans (A,A) (FuncComp F G) (IdFunctor A);
- Eta  :     NatTrans (B,B)  (IdFunctor B) (FuncComp G F); }. 
+ Eta  :     NatTrans (B,B)  (IdFunctor B) (FuncComp G F);
+ triangle_1 : eta _ _ _ (NatComp (A,B)  (FuncComp F (IdFunctor B))  (FuncComp F (FuncComp G F))
+ (FuncComp (IdFunctor A) F)
+ (Godement F F (IdFunctor B) (FuncComp G F) (IdNat (A,B) F) Eta) 
+ (Godement (FuncComp F G) (IdFunctor A) F F Epsilon (IdNat(A,B) F)) )  = eta _ _ _ (IdNat (A,B) F)
+ }. *)
+
+
+Record Adjunction {C D : Cat} (F : Functor (D,C))(G : Functor (C,D)):= mkAdjunction {
+ Epsilon :  NatTrans (C,C) (FuncComp G F) (IdFunctor C);
+ Eta  :     NatTrans (D,D)  (IdFunctor D) (FuncComp F G);
+ tri_id_1 :  forall (a : Obj D),      
+id C (obj _ F a) = 
+ (comp C) _ _ _   ((arr (D,C) F _ _ )( (eta _ _ _ Eta) a) ) ((eta  _ _ _ Epsilon) (obj _ F a)) ;
+  
+ tri_id_2 : forall ( b : Obj C),
+id D (obj _ G b) =
+(comp D) _ _ _  ((eta  _ _ _ Eta) (obj _ G b)) ((arr (C,D) G _ _ )( (eta _ _ _ Epsilon) b) )
+}.
+
+
+
+
 
 
 
