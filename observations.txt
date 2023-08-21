@@ -65,6 +65,8 @@ But there remains the duality between name and reference.
 "This expression". 
 
 
+If Type : One then all types are equal.
+
 
 
 
