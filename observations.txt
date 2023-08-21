@@ -53,7 +53,7 @@ Can Being be a singleton type  with One : Being ?   But also One : One ?
 
 Two names for the same thing ? Or two tokens with same reference ? Or non-uniqueness of types ?
 
-But plurality of 'names exist'.  Cf. names phi : X -> Omega in topos theory.
+But plurality of 'names' exist.  Cf. names phi : X -> Omega in topos theory.
 
 Name = Reference.
 
