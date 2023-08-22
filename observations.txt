@@ -67,6 +67,8 @@ But there remains the duality between name and reference.
 
 If Type : One then all types are equal.
 
+The meaning of the subobject classifier Omega and the dyad, the set with two points. Setoids. Bool.
+
 
 
 
