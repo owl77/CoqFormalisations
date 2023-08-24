@@ -15,7 +15,8 @@ preparation for simplicial sets *)
 
 (* 21-08-23 : Adjunctions via triangle identities (on eta not via Godement products)*)
 
-(*To do : Kan extension, product categories, finite categories, simplicial sets, 2-categories, 
+(* 24-08-23 : Kan extensions. *)
+(*To do : product categories, finite categories, simplicial sets, 2-categories, 
 enriched categories *)
 
 Record Cat :=mkCat
@@ -1437,6 +1438,57 @@ id D (obj _ G b) =
 (* now makes connection with other definitions *)
 
 (* to do Kan extension *)
+
+
+Definition Unique {X : Type} (h: X -> Prop) := forall (x y : X), (h x) /\ (h y) -> x = y.
+
+Definition ExistsUnique { X : Type } (h : X -> Prop) := (exists (u : X), h u) /\ Unique h.
+
+Record RKan {A B C : Cat} (X : Functor (A,C))( F : Functor (A,B)):=
+mkRKan { Ran : Functor (B,C);
+RK_epsilon : NatTrans (A,C) (FuncComp F Ran)  X;
+RK_uni : forall ( M : Functor (B,C))( M_epsilon :  NatTrans (A,C) (FuncComp F M)  X),
+ExistsUnique ( fun ( RK_delta : NatTrans (B,C)  M Ran) =>                                
+NatComp (A,C) (FuncComp F M) (FuncComp F Ran) X (Godement F F M Ran (IdNat (A,B) F) RK_delta)
+    RK_epsilon = 
+ M_epsilon        );
+} .
+
+
+Record LKan {A B C : Cat} (X : Functor (A,C))( F : Functor (A,B)):=
+mkLKan { Lan : Functor (B,C);
+LK_epsilon : NatTrans (A,C) X (FuncComp F Lan) ;
+LK_uni : forall ( M : Functor (B,C))( M_epsilon :  NatTrans (A,C) X (FuncComp F M)),
+ExistsUnique ( fun ( LK_delta : NatTrans (B,C)  Lan M ) =>                                
+NatComp (A,C) 
+ X (FuncComp F Lan) (FuncComp F M) LK_epsilon (Godement F F Lan M (IdNat (A,B) F) LK_delta)
+   =  M_epsilon        );
+} .
+
+
+(* product category *)
+
+Definition SquareCat (A : Cat) := FunctorCat (TwoCat, A).
+
+
+Definition ProdCat_obj (A B : Cat ) := prod (Obj A) (Obj B).
+
+Definition ProdCat_hom (A B :Cat ) ( W : (ProdCat_obj A B) * (ProdCat_obj A B)) := prod (hom A ((fst (fst W)), (fst (snd W)))) (hom B ((snd (fst W)), (snd (snd W)))).
+ 
+Definition ProdCat_id (A B : Cat) ( W : ProdCat_obj A B) :=     (id A (fst W), id B (snd W)).
+
+
+Definition ProdCAt_id (A B : Cat) ( a b c : ProdCat_obj A B) (f : ProdCat_hom A B (a,b)) ( g : ProdCat_hom A B (b,c)):=
+let f1 := fst f in let f2 := snd f in let g1 := fst g in let g2 := snd g in
+let a1 := fst a in let a2 := snd a in let b1 := fst b in let b2 := snd b in let c1:= fst c in let c2 := snd c in 
+(comp A a1 b1 c1 f1 g1, comp B a2 b2 c2 f2 g2).
+
+(* to be continued...*)
+
+
+
+
+
 
 
 
