@@ -1478,12 +1478,51 @@ Definition ProdCat_hom (A B :Cat ) ( W : (ProdCat_obj A B) * (ProdCat_obj A B)) 
 Definition ProdCat_id (A B : Cat) ( W : ProdCat_obj A B) :=     (id A (fst W), id B (snd W)).
 
 
-Definition ProdCAt_id (A B : Cat) ( a b c : ProdCat_obj A B) (f : ProdCat_hom A B (a,b)) ( g : ProdCat_hom A B (b,c)):=
+Definition ProdCat_comp (A B : Cat) ( a b c : ProdCat_obj A B) (f : ProdCat_hom A B (a,b)) ( g : ProdCat_hom A B (b,c)):=
 let f1 := fst f in let f2 := snd f in let g1 := fst g in let g2 := snd g in
 let a1 := fst a in let a2 := snd a in let b1 := fst b in let b2 := snd b in let c1:= fst c in let c2 := snd c in 
 (comp A a1 b1 c1 f1 g1, comp B a2 b2 c2 f2 g2).
 
-(* to be continued...*)
+Lemma Prod_id_ax :  forall (A B :Cat)
+ (a b : ProdCat_obj A B) (f : ProdCat_hom A B (a,b)), (ProdCat_comp A B a a b
+ (ProdCat_id A B  a) f = f) /\ (ProdCat_comp  A B a b b f (ProdCat_id A B b) = f).
+
+Proof.
+
+intros.
+unfold ProdCat_comp.
+unfold ProdCat_id.
+unfold ProdCat_obj in a,b.
+unfold ProdCat_hom in f.
+pose proof id_ax A (fst a) (fst b) (fst f).
+pose proof id_ax B (snd a) (snd b) (snd f).
+simpl.
+simpl in f, H, H0.
+pose proof surjective_pairing f.
+rewrite -> H1.
+destruct H.
+destruct H0.
+pose proof pair_equal_spec (comp A (fst a) (fst a) (fst b) (id A (fst a)) (fst f)) (fst f)
+(comp B (snd a) (snd a) (snd b) (id B (snd a)) (snd f)) (snd f).
+destruct H4.
+pose proof conj H H0.
+pose proof H5 H6.
+split.
+simpl.
+assumption.
+pose proof pair_equal_spec (comp A (fst a) (fst b) (fst b) (fst f) (id A (fst b))) (fst f)
+(comp B (snd a) (snd b) (snd b) (snd f) (id B (snd b))) (snd f).
+destruct H8.
+pose proof conj H2 H3.
+pose proof H9 H10.
+assumption.
+Qed.
+
+
+
+
+
+
 
 
 
