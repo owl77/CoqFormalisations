@@ -15,8 +15,8 @@ preparation for simplicial sets *)
 
 (* 21-08-23 : Adjunctions via triangle identities (on eta not via Godement products)*)
 
-(* 24-08-23 : Kan extensions. *)
-(*To do : product categories, finite categories, simplicial sets, 2-categories, 
+(* 24-08-23 : Kan extensions. 26-06-23 Product categories *)
+(*To do : finite categories, simplicial sets, 2-categories, 
 enriched categories *)
 
 Record Cat :=mkCat
@@ -1483,7 +1483,7 @@ let f1 := fst f in let f2 := snd f in let g1 := fst g in let g2 := snd g in
 let a1 := fst a in let a2 := snd a in let b1 := fst b in let b2 := snd b in let c1:= fst c in let c2 := snd c in 
 (comp A a1 b1 c1 f1 g1, comp B a2 b2 c2 f2 g2).
 
-Lemma Prod_id_ax :  forall (A B :Cat)
+Lemma ProdCat_id_ax :  forall (A B :Cat)
  (a b : ProdCat_obj A B) (f : ProdCat_hom A B (a,b)), (ProdCat_comp A B a a b
  (ProdCat_id A B  a) f = f) /\ (ProdCat_comp  A B a b b f (ProdCat_id A B b) = f).
 
@@ -1518,11 +1518,41 @@ pose proof H9 H10.
 assumption.
 Qed.
 
+Lemma ProdCat_ass : forall ( A B : Cat) 
+  (a b c d:ProdCat_obj A B)(f:(ProdCat_hom A B) (a,b))(g :  (ProdCat_hom A B) (b,c))
+(h: (ProdCat_hom A B) (c,d)), 
+(ProdCat_comp A B) a c d ((ProdCat_comp A B) a b c f g) h =   (ProdCat_comp A B) a b d 
+f ( (ProdCat_comp A B) b c d g h). 
+
+Proof.
+
+intros.
+unfold ProdCat_comp.
+unfold ProdCat_hom in f,g,h.
+unfold ProdCat_obj in a ,b,c,d.
+simpl.
+pose proof ass A (fst a) (fst b) (fst c) (fst d) (fst f) (fst g) (fst h).
+pose proof ass B  (snd a) (snd b) (snd c) (snd d) (snd f) (snd g) (snd h).
+pose proof pair_equal_spec 
+(comp A (fst a) (fst c) (fst d) (comp A (fst a) (fst b) (fst c) (fst f) (fst g)) (fst h) )(
+    comp A (fst a) (fst b) (fst d) (fst f) (comp A (fst b) (fst c) (fst d) (fst g) (fst h))
+)( comp B (snd a) (snd c) (snd d) (comp B (snd a) (snd b) (snd c) (snd f) (snd g)) (snd h))( 
+     comp B (snd a) (snd b) (snd d) (snd f) (comp B (snd b) (snd c) (snd d) (snd g) (snd h))).
+destruct H1.
+pose proof conj H H0.
+pose proof H2 H3.
+assumption.
+Qed.
+
+
+Definition ProdCat (A B : Cat ) := mkCat 
+(ProdCat_obj A B) (ProdCat_hom A B)
+(ProdCat_id A B)  (ProdCat_comp A B) (ProdCat_id_ax A B) (ProdCat_ass A B).
 
 
 
 
-
+_______________________ 
 
 
 
