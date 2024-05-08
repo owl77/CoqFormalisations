@@ -127,6 +127,34 @@ Definition Form ( F: property) :=  iota (fun ( x: object) => platonic_form F x)(
 
 Theorem plato3 : forall (F : property), encodes (Form F) F.
 
+Proof.
+intros.
+unfold Form.
+pose proof (iota_ax (fun (x : object) => platonic_form F x)(plato2 F)).
+unfold platonic_form.
+unfold platonic_form in H.
+simpl.
+simpl in H.
+destruct H.
+pose proof H0 F.
+apply H1.
+unfold D2_Eq.
+intros.
+split.
+intros.
+auto.
+auto.
+Qed.
+
+Definition Part (y x : object) := exists (F : property), (encodes x F) /\ F y.
+
+
+
+
+
+
+
+
 
 
 
