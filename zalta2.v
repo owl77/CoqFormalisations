@@ -148,6 +148,89 @@ Qed.
 
 Definition Part (y x : object) := exists (F : property), (encodes x F) /\ F y.
 
+Theorem Obj_eq_refl_abs : forall (x : object), Abstract x -> Obj_Eq x x.
+Proof.
+intros.
+unfold Obj_Eq.
+right.
+unfold Abs_Eq.
+split.
+assumption.
+split.
+assumption.
+intro.
+split.
+intro.
+assumption.
+intro. assumption.
+Qed.
+
+
+
+
+
+
+
+
+Theorem plato4 : forall (x y : object) (F : property), (not (Obj_Eq x y) /\ F x /\ F y) -> 
+exists (o : object), (Obj_Eq o (Form F) /\ Part x o /\ Part y o).
+
+Proof.
+intros.
+destruct H.
+destruct H0.
+pose proof plato3 F.
+pose proof conj H2 H0.
+exists (Form F).
+split.
+pose proof Obj_eq_refl_abs (Form F).
+pose proof iota_ax (fun ( x: object) => platonic_form F x)(plato2 F).
+unfold Form.
+simpl.
+simpl in H5.
+unfold platonic_form in H5.
+destruct H5.
+unfold Form in H4.
+unfold platonic_form in H4.
+pose proof H4 H5.
+unfold platonic_form.
+assumption.
+unfold Part.
+split.
+exists F.
+assumption.
+exists F.
+pose proof conj H2 H1.
+assumption.
+Qed.
+
+
+Axiom identity_D2 : forall ( p : property -> Prop) ( F G : property), (D2_Eq F G) -> ( p F <-> p G).
+
+
+Theorem plato5 : forall (x : object) (F : property), F x <-> Part x (Form F).
+
+
+
+Proof.
+intros.
+split.
+intro.
+unfold Part.
+exists F.
+pose proof plato3 F. split. assumption. assumption. intro. unfold Part in H.
+elim H.
+intros. destruct H0. pose proof iota_ax (fun ( x: object) => platonic_form F x)(plato2 F).
+simpl in H2. unfold platonic_form in H2. destruct H2. pose proof H3 x0.
+unfold Form in H0. unfold platonic_form in H0. destruct H4. pose proof H4 H0.
+pose proof identity_D2 (fun (p : property) => p x) x0 F. simpl in H7.
+pose proof H7 H6. destruct H8.  pose proof H8 H1. assumption.
+Qed.
+
+
+
+
+
 
 
 
