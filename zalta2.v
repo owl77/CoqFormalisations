@@ -208,6 +208,11 @@ Qed.
 Axiom identity_D2 : forall ( p : property -> Prop) ( F G : property), (D2_Eq F G) -> ( p F <-> p G).
 
 
+Axiom identity_obj : forall ( p : object -> Prop) ( o1 o2 : object), (Obj_Eq o1 o2) 
+-> ( p o1 <-> p o2).
+
+
+
 Theorem plato5 : forall (x : object) (F : property), F x <-> Part x (Form F).
 
 
@@ -226,6 +231,30 @@ unfold Form in H0. unfold platonic_form in H0. destruct H4. pose proof H4 H0.
 pose proof identity_D2 (fun (p : property) => p x) x0 F. simpl in H7.
 pose proof H7 H6. destruct H8.  pose proof H8 H1. assumption.
 Qed.
+
+Theorem plato6 : forall (x : object), ( exists (F : property), Obj_Eq x (Form F)) -> Abstract x.
+
+Proof.
+intros.
+elim H.
+intros. unfold Form in H0. unfold platonic_form in H0. simpl in H0.
+pose proof iota_ax  (fun x : object => Abstract x /\ (forall G : property,
+ encodes x G <-> D2_Eq G x0)) (plato2 x0). simpl in H1.
+destruct H1.
+pose proof identity_obj (fun (x : object) => Abstract x). simpl in H3.
+pose proof H3 x. pose proof H4 (iota
+          (fun x : object => Abstract x /\ (forall G : property, encodes x G <-> D2_Eq G x0))
+          (plato2 x0)). pose proof H5 H0. destruct H6.  pose proof H7 H1. assumption.
+Qed.
+
+Theorem plato7: forall (x : object), (exists (F : property), Obj_Eq x (Form F)) ->
+ Part x (Form Abstract).
+
+
+Proof.
+intros. elim H. intros. pose proof plato6 x. pose proof H1 H. pose proof plato5 x. 
+pose proof (H3 Abstract). destruct H4. pose proof H4 H2. assumption. Qed.
+
 
 
 
