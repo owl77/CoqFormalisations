@@ -1,4 +1,5 @@
 
+(* Abstract Objects 41 - 44, Parmenides and the Third Man Argument *)
 
 Axiom object: Set.
 
@@ -255,7 +256,97 @@ Proof.
 intros. elim H. intros. pose proof plato6 x. pose proof H1 H. pose proof plato5 x. 
 pose proof (H3 Abstract). destruct H4. pose proof H4 H2. assumption. Qed.
 
+Theorem plato_aux : Part (Form Abstract) (Form Abstract).
 
+Proof.
+pose proof Obj_eq_refl_abs (Form Abstract). 
+pose proof iota_ax (fun ( x: object) => platonic_form Abstract x)(plato2 Abstract). simpl in H0.
+unfold platonic_form in H0. destruct H0. unfold Form in H. pose proof H H0. 
+pose proof plato7 (iota (fun x : object => platonic_form Abstract x) (plato2 Abstract)).
+unfold Form in H3.  elim H3. intros. unfold Form. unfold Part. exists x. assumption. exists Abstract.
+assumption.
+Qed.
+
+Theorem plato8 : not (forall (x : object) (F : property), Part x (Form F) -> 
+not (Obj_Eq x (Form F))).
+
+Proof.
+intro. pose proof (H (Form Abstract)) Abstract. pose proof plato_aux.
+pose proof H0 H1. pose proof Obj_eq_refl_abs(Form Abstract).
+pose proof iota_ax (fun ( x: object) => platonic_form Abstract x)(plato2 Abstract).
+simpl in H4. unfold platonic_form in H4. destruct H4.
+unfold Form in H3. unfold platonic_form in H3. pose proof H3 H4.
+unfold Form in H2. unfold platonic_form in H2. pose proof H2 H6. assumption.
+Qed.
+
+(* Abstract Objects pp. 45 - 47, The Sophist *)
+
+Axiom Motion : property.
+
+Definition Rest := fun (x : object) => not (Motion x).
+
+Axiom Nuclear : property -> Prop.
+
+Axiom A1 : Nuclear Motion.
+
+Axiom A2: (not (D2_Eq Motion Rest)) /\ not ((D2_Eq Motion Abstract)) /\ (not (D2_Eq Rest Abstract)).
+
+Require Import Coq.Logic.Classical.
+
+
+Theorem soph1a : forall (x : object), Part x (Form Motion) <-> not (Part x (Form Rest)).
+
+Proof.
+intro. split. intro. intro. unfold Rest in H0. unfold Part in H. unfold Part in H0.
+elim H. intros. elim H0. intros. destruct H1. destruct H2.
+unfold Form in H1. pose proof iota_ax (fun ( x: object) => platonic_form Motion x)
+(plato2 Motion). simpl in H5. unfold platonic_form in H5. destruct H5.
+pose proof H6 x0. destruct H7. pose proof H7 H1.
+unfold Form in H2.
+pose proof iota_ax (fun x : object => platonic_form (fun x0 : object => ~ Motion x0) x)
+          (plato2 (fun x : object => ~ Motion x)). simpl in H10. unfold platonic_form in H10.
+destruct H10.
+ pose proof H11 x1.  destruct H12. pose proof H12 H2.
+pose proof identity_D2 (fun (F : property) => F x).
+pose proof H15 x1 (fun x0 : object => ~ Motion x0).
+simpl in H16.
+pose proof H16 H14.
+pose proof H15 x0 Motion.
+pose proof H18 H9. simpl in H19.
+destruct H17. destruct H19. pose proof H19 H3. pose proof H17 H4. pose proof H23 H22.
+assumption. 
+
+intros. unfold Part. unfold Part in H.  pose proof plato3 Rest. 
+unfold Form in H0.
+pose proof iota_ax (fun x : object => platonic_form Rest x) (plato2 Rest). simpl in H1.
+exists Motion.
+
+cut (not (Rest x)).
+intro. unfold Rest in H2.  pose proof NNPP (Motion x) H2.
+pose proof plato3 Motion.
+split. assumption. assumption. 
+intro. pose proof plato3 Rest. pose proof conj H3 H2. 
+elim H.
+exists Rest.
+assumption.
+Qed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 
 
 
