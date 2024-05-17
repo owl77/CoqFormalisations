@@ -71,6 +71,11 @@ Definition actual (X : OSig) : (OTyp X) -> (oTyp X):= match X with
 |arg a b => fun ( T : OTyp (arg a b)) => fun (x : OTyp a) => fun (y : OTyp b) => (T x y) this
 end.
 
-Check actual.
+Print actual.
+
+Axiom Enc: forall (X :OSig), OTyp (arg X (prop X)).
+Axiom Truth : OTyp (prop p).
+
+Print Enc.
 
 
